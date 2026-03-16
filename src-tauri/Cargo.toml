@@ -1,7 +1,7 @@
 [package]
 name = "dirhamly"
-version = "0.1.0"
-description = "A Tauri App"
+version = "0.1.5"
+description = "A modern and efficient cross platform app for tracking your expenses and managing your budget."
 authors = ["you"]
 edition = "2021"
 

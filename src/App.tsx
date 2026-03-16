@@ -1,18 +1,37 @@
 import "./App.css";
-import {Button} from "@/components/ui/button"
+
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/ui/diUi/diBar";
+import { Dashboard } from "@/dashboard/maindashboard";
+import TitleBar from "@/components/ui/tabBar";
+import { useEffect } from "react";
+
 const App = () => {
+  useEffect(() => {
+    // Disable right-click in production
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => document.removeEventListener("contextmenu", handleContextMenu);
+  }, []);
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-rust-classic text-white">
-      {/* If Tailwind is working, this will be a large, blue, bold heading */}
-      <h1 className="text-6xl font-black text-white/60 drop-shadow-sm mb-4">
-        Hello World
-      </h1>
+    <SidebarProvider defaultOpen={true}>
+      {/* Container is fixed and hidden to prevent double bars */}
+      <div className="flex h-screen w-full overflow-hidden">
+        <AppSidebar />
 
-      {/* If Tailwind is working, this will have a rounded slate border */}
-      <Button variant="default" className="p-5 text-xl bg-rust-blue hover:bg-rust-dark">Click me</Button>
+        <div className="flex flex-col flex-1 min-w-0">
+          <TitleBar />
 
-    </div>
+          {/* This is the only place that should scroll */}
+          <main className="flex-1 overflow-y-auto bg-background custom-scrollbar">
+            <Dashboard />
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };
-
 export default App;

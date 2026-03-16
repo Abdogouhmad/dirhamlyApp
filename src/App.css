@@ -3,10 +3,24 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@plugin 'tailwind-scrollbar';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
+    /* --- RUST GRADING SCALE (50-900) --- */
+    --rust-50:  oklch(0.975 0.015 45);   /* Light cream highlight */
+    --rust-100: oklch(0.935 0.035 45);   /* Soft peach-beige */
+    --rust-200: oklch(0.865 0.065 45);   /* Muted terracotta-sand */
+    --rust-300: oklch(0.785 0.100 45);   /* Warm clay */
+    --rust-400: oklch(0.705 0.145 42);   /* Lighter rust */
+    --rust-500: oklch(0.614 0.176 40.83); /* PRIMARY BRAND RUST (New Transaction button) */
+    --rust-600: oklch(0.535 0.165 38);   /* Burnt orange */
+    --rust-700: oklch(0.425 0.125 35);   /* Deep clay */
+    --rust-800: oklch(0.285 0.085 35);   /* Earthy chocolate-brown */
+    --rust-900: oklch(0.180 0.025 35);   /* SIGNATURE BACKGROUND (Dashboard dark mode) */
+    --bg-tm: oklch(0.145 0 0);
+
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -115,6 +129,20 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+
+    /* My custome colors*/
+    --color-rust-50: var(--rust-50);
+    --color-rust-100: var(--rust-100);
+    --color-rust-200: var(--rust-200);
+    --color-rust-300: var(--rust-300);
+    --color-rust-400: var(--rust-400);
+    --color-rust-500: var(--rust-500);
+    --color-rust-600: var(--rust-600);
+    --color-rust-700: var(--rust-700);
+    --color-rust-800: var(--rust-800);
+    --color-rust-900: var(--rust-900);
+    --color-dark: var(--bg-tm);
+
 }
 
 @layer base {
@@ -127,4 +155,35 @@
   html {
     @apply font-sans;
     }
+}
+
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Keeps it clean */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  /* Use a small radius for that "slightly rounded" look (not a pill) */
+  border-radius: 5px; 
+  
+  /* Matches your app foreground at 30% opacity */
+  background-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+  
+  /* THE TRICK: Use transparent borders to "shrink" the thumb 
+     and pull it away from the edges of the track */
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-top: 100px solid transparent;    /* This makes it look "shorter" at the top */
+  border-bottom: 100px solid transparent; /* This makes it look "shorter" at the bottom */
+  
+  /* Ensures the color only fills the space inside the transparent borders */
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--foreground) 50%, transparent);
 }
