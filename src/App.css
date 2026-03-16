@@ -177,8 +177,8 @@
      and pull it away from the edges of the track */
   border-left: 2px solid transparent;
   border-right: 2px solid transparent;
-  border-top: 100px solid transparent;    /* This makes it look "shorter" at the top */
-  border-bottom: 100px solid transparent; /* This makes it look "shorter" at the bottom */
+  border-top: 200px solid transparent;    /* This makes it look "shorter" at the top */
+  border-bottom: 200px solid transparent; /* This makes it look "shorter" at the bottom */
   
   /* Ensures the color only fills the space inside the transparent borders */
   background-clip: padding-box;
