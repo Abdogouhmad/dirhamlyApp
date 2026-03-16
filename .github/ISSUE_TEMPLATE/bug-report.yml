@@ -1,0 +1,50 @@
+name: 🐛 Bug Report
+description: Report something that's broken or not working as expected
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please fill in as much detail as possible.
+  
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: "When I tap X, the app crashes with error Y..."
+    validations:
+      required: true
+  
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: List steps so we can reproduce it.
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. See error
+    validations:
+      required: true
+  
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+  
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Logs
+      description: Drag & drop screenshots, error logs, etc.
+      placeholder: (optional)
+  
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, React Native version, Expo version, device/emulator...
+      placeholder: "iOS 18, RN 0.74, Expo SDK 51, iPhone 15"
