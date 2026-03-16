@@ -37,7 +37,9 @@ win: build-windows
 # Clean target dir (useful before cross builds if weird errors appear)
 clean:
     cargo clean
-
+# Clean only android target (useful if only Android build is broken, doesn't touch frontend dist etc.)
+clean-android:
+    rm -rf src-tauri/target
 # Very clean (also removes frontend dist, node_modules etc.)
 clean-all:
     cargo clean
