@@ -13,6 +13,7 @@ default:
 
 # Run in dev mode (watches frontend + rust)
 dev:
+    bun install
     cargo tauri dev
 
 # Alias for dev
@@ -34,6 +35,7 @@ build-windows:
 # Alias
 win: build-windows
 
+
 # Clean target dir (useful before cross builds if weird errors appear)
 clean:
     cargo clean
@@ -42,7 +44,6 @@ clean-android:
     rm -rf src-tauri/target
 # Very clean (also removes frontend dist, node_modules etc.)
 clean-all:
-    cargo clean
     rm -rf src-tauri/target
     rm -rf node_modules
     rm -rf dist

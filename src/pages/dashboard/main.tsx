@@ -3,10 +3,10 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { DataTable } from "./table";
-import { TableData, TableColumes } from "./tabledata";
-import { ChartBarDefault } from "./chart";
-import { ChartPieInteractive } from "./piechart";
+import { DataTable } from "./widgets/table";
+import { TableData, TableColumes } from "./widgets/tabledata";
+import { ChartBarDefault } from "./widgets/chart";
+import { ChartPieInteractive } from "./widgets/piechart";
 type DashboardProps = {
   name?: string;
   balance?: string;
