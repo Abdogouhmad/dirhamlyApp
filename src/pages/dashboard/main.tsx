@@ -58,22 +58,18 @@ export function Dashboard() {
         ))}
       </div>
 
-      {/* Table + Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Table */}
-        <div className="lg:col-span-7">
-          <DataTable columns={TableColumes} data={TableData} />
+      {/* Charts */}
+      <div className="lg:row-span-5 flex lg:flex-row flex-col gap-4">
+        <div className="w-full max-w-full">
+          <ChartBarDefault />
         </div>
-
-        {/* Charts */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="w-full max-w-full">
-            <ChartBarDefault />
-          </div>
-          <div className="w-full max-w-full">
-            <ChartPieInteractive />
-          </div>
+        <div className="w-full max-w-full">
+          <ChartPieInteractive />
         </div>
+      </div>
+      {/* Table */}
+      <div className="lg:col-span-7">
+        <DataTable columns={TableColumes} data={TableData} />
       </div>
     </div>
   );
