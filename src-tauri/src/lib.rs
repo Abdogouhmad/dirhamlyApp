@@ -32,7 +32,13 @@ pub fn run() {
 
             // Store in app state (can be cloned & accessed from commands)
             app_handle.manage(db);
-
+            // TODO: remove this devtools block for prod
+            #[cfg(debug_assertions)]
+            {
+                let window = app.get_webview_window("main").unwrap();
+                window.open_devtools();
+                window.close_devtools();
+            }
             Ok(())
         })
         // Register ALL commands in ONE call — very important!

@@ -18,7 +18,6 @@ import { getTableColumns } from "./widgets/tablecolumes";
 import DashHeader from "./widgets/dashheader";
 import DashSummary, { SummaryItem } from "./widgets/sumdata";
 
-
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export function Dashboard() {
@@ -26,7 +25,6 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Derived — always in sync with transactions state
   const { income, expense, balance } = transactions.reduce(
     (acc, tx) => {
       const amt = parseFloat(tx.amount) || 0;
@@ -68,9 +66,11 @@ export function Dashboard() {
         toast.success("Transaction deleted", {
           description: "The record has been permanently removed.",
         });
+        // Re-fetch to ensure server state matches (handles edge cases)
+        await fetchTransactions();
       } catch (err: any) {
-        // Rollback on failure
-        fetchTransactions();
+        // Rollback on failure by re-fetching the real state
+        await fetchTransactions();
         toast.error("Delete failed", {
           description: err.message || "Could not delete the transaction.",
         });
@@ -148,5 +148,3 @@ export function Dashboard() {
     </div>
   );
 }
-
-

@@ -18,6 +18,12 @@ pub fn add_tx(
     description: Option<String>,
     date: String, // "2025-03-18"
 ) -> Result<i64, String> {
+    #[cfg(debug_assertions)]
+    // TODO: remove this debug log for prod
+    println!(
+        "[DEBUG] add_tx called | type: {}, amount: {}, category: {}, desc: {:?}, date: {}",
+        tx_type, amount, category, description, date
+    );
     let tx_type_enum = match tx_type.as_str() {
         "income" => TxType::Income,
         "expense" => TxType::Expense,

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // ← make sure this is imported
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   InputGroup,
@@ -29,15 +29,14 @@ import {
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea"; // assuming correct path
-// import { Toaster } from "@/components/ui/sonner"; // the display component → goes in layout
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+
 /* ---------------------- MAIN BUTTON & SHEET ---------------------- */
 export function TxButton() {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed" && !isMobile;
-  const [txType, setTxType] = useState<"income" | "expense">("expense");
-  const [open, setOpen] = useState(false); // to control sheet open/close
+  const [open, setOpen] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -65,31 +64,22 @@ export function TxButton() {
           </SheetDescription>
         </SheetHeader>
 
-        {/* FORM */}
         <div className="flex-1 overflow-y-auto m-3">
-          <DiForm
-            txType={txType}
-            setTxType={setTxType}
-            onSuccess={() => setOpen(false)} // close sheet on success
-          />
+          {/* Unmounts on close → all state resets including txType */}
+          {open && <DiForm onSuccess={() => setOpen(false)} />}
         </div>
-
-        {/* FOOTER – moved inside DiForm for submit control */}
       </SheetContent>
     </Sheet>
   );
 }
 
-/* ---------------------- FORM with state & submit ---------------------- */
-function DiForm({
-  txType,
-  setTxType,
-  onSuccess,
-}: {
-  txType: "income" | "expense";
-  setTxType: (type: "income" | "expense") => void;
-  onSuccess: () => void;
-}) {
+/* ---------------------- FORM ---------------------- */
+function DiForm({ onSuccess }: { onSuccess: () => void }) {
+  // ref keeps txType readable synchronously at submit time,
+  // avoiding any stale closure that might plague useState alone
+  const txTypeRef = useRef<"income" | "expense">("expense");
+  const [txType, setTxType] = useState<"income" | "expense">("expense");
+
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -98,58 +88,56 @@ function DiForm({
   );
   const [loading, setLoading] = useState(false);
 
+  const handleTxTypeChange = (type: "income" | "expense") => {
+    txTypeRef.current = type;
+    setTxType(type);
+    console.log("Toggle changed to:", type);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic client-side validation
+    // Read from ref — always the latest, no stale closure risk
+    const currentTxType = txTypeRef.current;
+    console.log(">>> Submitting with txType:", currentTxType);
+
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast.error("Invalid amount", {
-        description: "Please enter a positive number",
-      });
+      toast.error("Invalid amount", { description: "Please enter a positive number" });
       return;
     }
-
     if (!category.trim()) {
-      toast.error("Category is needed", {
-        description: "Please enter a category",
-      });
+      toast.error("Category is needed", { description: "Please enter a category" });
       return;
     }
-
     if (!date) {
-      toast.error("Date is needed", {
-        description: "Please select a date",
-      });
+      toast.error("Date is needed", { description: "Please select a date" });
       return;
     }
 
     setLoading(true);
 
     try {
-      // Call Tauri command
       const id = await invoke<number>("add_tx", {
-        txType,
-        amount, // sent as string → Rust parses to Decimal
+        txType: currentTxType,
+        amount,
         category: category.trim(),
-        description: description.trim() || undefined,
-        date, // "YYYY-MM-DD"
+        description: description.trim() || null,
+        date,
       });
 
+      console.log(">>> Saved id:", id, "as:", currentTxType);
       toast.success("Transaction added", {
-        description: `ID: ${id} • ${txType} • ${amount} MAD`,
+        description: `ID: ${id} • ${currentTxType} • ${amount} MAD`,
       });
 
-      // Reset form
-      setAmount("");
-      setCategory("");
-      setDescription("");
-      setDate(new Date().toISOString().split("T")[0]);
-
-      onSuccess(); // close sheet
+      onSuccess();
     } catch (err: any) {
-      toast.error("Failed to save", {
-        description: err?.message || "Unknown error occurred",
-      });
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.message ?? JSON.stringify(err) ?? "Unknown error";
+      console.error("add_tx error:", err);
+      toast.error("Failed to save", { description: msg });
     } finally {
       setLoading(false);
     }
@@ -157,7 +145,7 @@ function DiForm({
 
   return (
     <form id="tx-form" onSubmit={handleSubmit} className="grid gap-6">
-      <TxTypeToggle value={txType} onChange={setTxType} />
+      <TxTypeToggle value={txType} onChange={handleTxTypeChange} />
 
       {/* Amount */}
       <FormField label="Amount" htmlFor="tx-amount">
@@ -176,9 +164,7 @@ function DiForm({
             required
             disabled={loading}
           />
-          <InputGroupAddon className="text-xs font-semibold">
-            MAD
-          </InputGroupAddon>
+          <InputGroupAddon className="text-xs font-semibold">MAD</InputGroupAddon>
         </InputGroup>
       </FormField>
 
@@ -199,7 +185,7 @@ function DiForm({
         </InputGroup>
       </FormField>
 
-      {/* Date – native date picker */}
+      {/* Date */}
       <FormField label="Date" htmlFor="tx-date">
         <Input
           id="tx-date"
@@ -222,7 +208,6 @@ function DiForm({
         />
       </FormField>
 
-      {/* Footer – now inside form so submit works */}
       <SheetFooter className="flex gap-4 mt-6">
         <Button
           type="submit"
@@ -249,7 +234,7 @@ function DiForm({
   );
 }
 
-/* ---------------------- REUSABLE COMPONENTS (unchanged) ---------------------- */
+/* ---------------------- REUSABLE COMPONENTS ---------------------- */
 
 function FormField({
   label,
@@ -277,51 +262,35 @@ function TxTypeToggle({
 }) {
   return (
     <div className="relative flex p-1 bg-muted rounded-lg border border-border/50">
+      {/* Sliding pill — pointer-events-none so it never intercepts clicks */}
       <div
         className={cn(
-          "absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-background rounded-md shadow-sm transition-transform duration-300",
+          "absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-background rounded-md shadow-sm transition-transform duration-300 pointer-events-none",
           value === "expense" ? "translate-x-full" : "translate-x-0",
         )}
       />
-      <ToggleBtn
-        active={value === "income"}
+      <button
+        type="button"
         onClick={() => onChange("income")}
-        icon={<ArrowUpCircle className="text-green-500" />}
-        label="Income"
-      />
-      <ToggleBtn
-        active={value === "expense"}
+        className={cn(
+          "relative w-1/2 flex items-center justify-center gap-2 py-2 text-sm z-10 rounded-md transition-colors duration-200 cursor-pointer",
+          value === "income" ? "text-foreground font-medium" : "text-muted-foreground",
+        )}
+      >
+        <ArrowUpCircle className="h-4 w-4 text-green-500" />
+        Income
+      </button>
+      <button
+        type="button"
         onClick={() => onChange("expense")}
-        icon={<ArrowDownCircle className="text-red-500" />}
-        label="Expense"
-      />
+        className={cn(
+          "relative w-1/2 flex items-center justify-center gap-2 py-2 text-sm z-10 rounded-md transition-colors duration-200 cursor-pointer",
+          value === "expense" ? "text-foreground font-medium" : "text-muted-foreground",
+        )}
+      >
+        <ArrowDownCircle className="h-4 w-4 text-red-500" />
+        Expense
+      </button>
     </div>
-  );
-}
-
-function ToggleBtn({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      onClick={onClick}
-      className={cn(
-        "relative w-1/2 flex items-center justify-center gap-2 py-2 text-sm z-10 hover:bg-transparent",
-        active ? "text-foreground" : "text-muted-foreground",
-      )}
-    >
-      {icon}
-      {label}
-    </Button>
   );
 }

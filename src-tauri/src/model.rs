@@ -6,6 +6,7 @@ use strum_macros::{Display, EnumString, VariantNames};
 #[derive(Debug, Clone, Copy, Display, EnumString, VariantNames, Serialize, Deserialize)]
 #[strum(serialize_all = "lowercase")]
 #[strum(ascii_case_insensitive)]
+#[serde(rename_all = "lowercase")]
 pub enum TxType {
     Income,
     Expense,
