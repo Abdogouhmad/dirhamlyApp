@@ -7,7 +7,7 @@
  *   formatCurrency(-89.1)      → "-89,10 MAD"
  *   formatCurrency(0)          → "0,00 MAD"
  */
-export function formatCurrency(
+export function formatCu(
   value: string | number | null | undefined,
   currency = "MAD",
   locale = "fr-MA" // French Morocco → correct spacing, comma as decimal

@@ -19,7 +19,7 @@
         "transparent": false,
         "fullscreen": false,
         "resizable": true,
-        "devtools": true 
+        "devtools": false
       }
     ],
     "security": {

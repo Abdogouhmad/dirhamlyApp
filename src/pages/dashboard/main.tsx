@@ -1,14 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  RefreshCw,
-} from "lucide-react";
-import { Transaction, getAllTransactions } from "@/lib/txop";
-import { formatCurrency } from "@/lib/currency";
+import { TrendingUp, TrendingDown, Wallet, RefreshCw } from "lucide-react";
+import { Transaction, getAllTransactions, formatCurrency } from "./service/dashservice.ts";
+// import { formatCurrency } from "@/lib/currency";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "sonner";
 import { ChartBarDefault } from "../dashboard/widgets/chart";
@@ -98,7 +93,7 @@ export function Dashboard() {
     },
     {
       id: "balance",
-      title: "Net Savings",
+      title: "Your Current Balance",
       sum: formatCurrency(balance.toFixed(2)),
       icon: Wallet,
       color: balance >= 0 ? "rust" : "red",
@@ -122,7 +117,6 @@ export function Dashboard() {
     <div className="min-h-screen selection:bg-[#4ade80]/30 p-6 space-y-6">
       <DashHeader
         name="Abdo"
-        balance={formatCurrency(balance.toFixed(2))}
         onRefresh={() => fetchTransactions(true)}
         refreshing={refreshing}
       />

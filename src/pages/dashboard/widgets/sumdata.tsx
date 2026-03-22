@@ -1,5 +1,4 @@
 // ─── DashSummary ──────────────────────────────────────────────────────────────
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
@@ -17,11 +16,10 @@ export type SummaryItem = {
   id: string;
   title: string;
   sum: string;
-  percentage?: string;
+  percentage?: string; // ← now part of the type
   icon: LucideIcon;
   color: "green" | "red" | "rust";
 };
-
 
 export default function DashSummary({
   title,
@@ -45,7 +43,7 @@ export default function DashSummary({
     rust: {
       icon: "text-rust-600/70 dark:text-rust-500/80",
       bg: "bg-rust-500/50 dark:bg-rust-800/50 border-rust-500/50 dark:border-rust-800/50",
-      badge: "bg-rust-400/70 dark:bg-rust-800/50 text-rust-300",
+      badge: "bg-rust-400/70 dark:bg-rust-800/50 dark:text-rust-300",
     },
   };
 
@@ -62,7 +60,7 @@ export default function DashSummary({
         {percentage && (
           <Badge
             variant="outline"
-            className={`font-bold border-none ${s.badge}`}
+            className={`font-bold border-none text-xs ${s.badge}`}
           >
             {percentage}
           </Badge>

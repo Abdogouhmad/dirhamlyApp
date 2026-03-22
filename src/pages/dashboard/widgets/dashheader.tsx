@@ -2,12 +2,10 @@ import { RefreshCw } from "lucide-react";
 
 export default function DashHeader({
   name = "Abderrahman",
-  balance = "0.00 MAD",
   onRefresh,
   refreshing,
 }: {
   name?: string;
-  balance: string;
   onRefresh: () => void;
   refreshing: boolean;
 }) {
@@ -33,13 +31,6 @@ export default function DashHeader({
             className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
           />
         </button>
-
-        <div className="px-6 py-2 rounded-md border border-rust-500/60 hover:border-rust-500 flex flex-col items-center shadow-inner transition-colors duration-200">
-          <span className="text-[10px] uppercase tracking-widest text-rust-500 font-bold mb-1">
-            Current Balance
-          </span>
-          <span className="font-bold text-lg tracking-tight">{balance}</span>
-        </div>
       </div>
     </div>
   );

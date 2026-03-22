@@ -1,39 +1,27 @@
 use crate::db::DiBase;
-use crate::model::Transaction;
-use crate::model::TxType;
-use std::str::FromStr;
-// use std::path::PathBuf;
-use tauri::State;
-
+use crate::model::{Transaction, TxType};
 use chrono::NaiveDate;
+use rust_decimal::prelude::ToPrimitive;
 use rust_decimal::Decimal;
-// use strum::IntoEnumIterator; // if needed
-
+use std::str::FromStr;
+use tauri::State;
 #[tauri::command]
 pub fn add_tx(
     state: State<'_, DiBase>,
-    tx_type: String, // you'll convert in JS or here
+    tx_type: String,
     amount: String,
     category: String,
     description: Option<String>,
-    date: String, // "2025-03-18"
+    date: String,
 ) -> Result<i64, String> {
-    #[cfg(debug_assertions)]
-    // TODO: remove this debug log for prod
-    println!(
-        "[DEBUG] add_tx called | type: {}, amount: {}, category: {}, desc: {:?}, date: {}",
-        tx_type, amount, category, description, date
-    );
     let tx_type_enum = match tx_type.as_str() {
         "income" => TxType::Income,
         "expense" => TxType::Expense,
-        _ => return Err("Invalid tx_type".to_string()),
+        _ => return Err(format!("Invalid tx_type: '{}'", tx_type)),
     };
 
     let amount_dec = Decimal::from_str(&amount).map_err(|e| e.to_string())?;
-
     let date_naive = NaiveDate::parse_from_str(&date, "%Y-%m-%d").map_err(|e| e.to_string())?;
-
     let transaction = Transaction::new(tx_type_enum, amount_dec, category, description, date_naive);
 
     let id = state
@@ -53,16 +41,16 @@ pub fn get_by_month(
     state: State<'_, DiBase>,
     year_month: String,
 ) -> Result<Vec<Transaction>, String> {
-    // year_month like "2025-03"
     state
         .get_transactions_by_month(&year_month)
         .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn get_balance(state: State<'_, DiBase>) -> Result<String, String> {
+pub fn get_balance(state: State<'_, DiBase>) -> Result<f64, String> {
     let bal = state.get_balance().map_err(|e| e.to_string())?;
-    Ok(bal.to_string()) // or return Decimal if you serialize it properly
+
+    Ok(bal.to_f64().unwrap_or(0.0))
 }
 
 #[tauri::command]

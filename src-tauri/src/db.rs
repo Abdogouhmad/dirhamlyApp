@@ -20,6 +20,7 @@ impl DiBase {
     }
 
     pub fn initialize(&self) -> Result<()> {
+        // TODO: consider to use index on date for archive tables 
         let conn = self.conn.lock().unwrap();
         conn.execute(
             "CREATE TABLE IF NOT EXISTS transactions (
