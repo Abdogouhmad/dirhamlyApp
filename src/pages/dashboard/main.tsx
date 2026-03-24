@@ -1,168 +1,144 @@
-import { TypographyH2 } from "@/components/ui/text";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { DataTable } from "./widgets/table";
-import { TableData, TableColumes } from "./widgets/tabledata";
-import { ChartBarDefault } from "./widgets/chart";
-import { ChartPieInteractive } from "./widgets/piechart";
-type DashboardProps = {
-  name?: string;
-  balance?: string;
-};
+"use client";
 
-type SummaryItem = {
-  id: string;
-  title: string;
-  sum: string;
-  percentage?: string;
-  icon: LucideIcon;
-  color: "green" | "red" | "rust";
-};
+import { useState, useEffect, useCallback } from "react";
+import { TrendingUp, TrendingDown, Wallet, RefreshCw } from "lucide-react";
+import { Transaction, getAllTransactions, formatCurrency } from "./service/dashservice.ts";
+// import { formatCurrency } from "@/lib/currency";
+import { invoke } from "@tauri-apps/api/core";
+import { toast } from "sonner";
+import { ChartBarDefault } from "../dashboard/widgets/chart";
+import { ChartPieInteractive } from "./widgets/piechart";
+import { DataTable } from "./widgets/table";
+import { getTableColumns } from "./widgets/tablecolumes";
+import DashHeader from "./widgets/dashheader";
+import DashSummary, { SummaryItem } from "./widgets/sumdata";
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export function Dashboard() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { income, expense, balance } = transactions.reduce(
+    (acc, tx) => {
+      const amt = parseFloat(tx.amount) || 0;
+      if (tx.tx_type === "income") acc.income += amt;
+      else acc.expense += amt;
+      acc.balance = acc.income - acc.expense;
+      return acc;
+    },
+    { income: 0, expense: 0, balance: 0 },
+  );
+
+  const fetchTransactions = useCallback(async (showRefreshing = false) => {
+    if (showRefreshing) setRefreshing(true);
+    try {
+      const txs = await getAllTransactions();
+      setTransactions(txs);
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+      toast.error("Failed to load transactions");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  const handleDelete = useCallback(
+    async (id: number) => {
+      if (!confirm("Are you sure you want to delete this transaction?")) return;
+
+      // Optimistic update — instant UI response
+      setTransactions((prev) => prev.filter((tx) => tx.id !== id));
+
+      try {
+        await invoke("delete_tx", { id });
+        toast.success("Transaction deleted", {
+          description: "The record has been permanently removed.",
+        });
+        // Re-fetch to ensure server state matches (handles edge cases)
+        await fetchTransactions();
+      } catch (err: any) {
+        // Rollback on failure by re-fetching the real state
+        await fetchTransactions();
+        toast.error("Delete failed", {
+          description: err.message || "Could not delete the transaction.",
+        });
+      }
+    },
+    [fetchTransactions],
+  );
+
+  const columns = getTableColumns(handleDelete);
+
   const summaryData: SummaryItem[] = [
     {
       id: "income",
-      title: "Income",
-      sum: "45,000.00",
-      percentage: "+12.5%",
+      title: "Total Income",
+      sum: formatCurrency(income.toFixed(2)),
       icon: TrendingUp,
       color: "green",
     },
     {
       id: "expense",
-      title: "Expense",
-      sum: "12,600.00",
-      percentage: "-2.4%",
+      title: "Total Expenses",
+      sum: formatCurrency(expense.toFixed(2)),
       icon: TrendingDown,
       color: "red",
     },
     {
       id: "balance",
-      title: "Net Sevings",
-      sum: "32,4.00",
+      title: "Your Current Balance",
+      sum: formatCurrency(balance.toFixed(2)),
       icon: Wallet,
-      color: "rust",
+      color: balance >= 0 ? "rust" : "red",
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="h-6 w-6 text-rust-500 animate-spin" />
+          <p className="text-sm text-muted-foreground animate-pulse">
+            Loading your finances...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen selection:bg-[#4ade80]/30 p-6 space-y-6">
-      {/* Header + Summary Cards */}
-      <DashHeader name="Abdo" balance="32,400.00 MAD" />
+      <DashHeader
+        name="Abdo"
+        onRefresh={() => fetchTransactions(true)}
+        refreshing={refreshing}
+      />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {summaryData.map((item) => (
           <DashSummary key={item.id} {...item} />
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="lg:row-span-5 flex lg:flex-row flex-col gap-4">
-        <div className="w-full max-w-full">
+      <div className="flex lg:flex-row flex-col gap-4">
+        <div className="w-full">
           <ChartBarDefault />
         </div>
-        <div className="w-full max-w-full">
+        <div className="w-full">
           <ChartPieInteractive />
         </div>
       </div>
-      {/* Table */}
-      <div className="lg:col-span-7">
-        <DataTable columns={TableColumes} data={TableData} />
+
+      <div>
+        <DataTable columns={columns} data={transactions} />
       </div>
     </div>
-  );
-}
-
-function DashHeader({
-  name = "Abderrahman",
-  balance = "80,000.00 MAD",
-}: DashboardProps) {
-  return (
-    <div className="flex items-center justify-between w-full pb-5 ">
-      <TypographyH2 text={`Welcome back, ${name}`} />
-
-      <div className="px-6 py-2 rounded-md border border-rust-500 flex flex-col items-center shadow-inner">
-        <span className="text-[10px] uppercase tracking-widest text-rust-500 font-bold mb-1">
-          Current Balance
-        </span>
-
-        <span className="font-bold text-lg tracking-tight">{balance}</span>
-      </div>
-    </div>
-  );
-}
-
-type DashSummaryProps = {
-  title: string;
-  sum: string;
-  percentage?: string;
-  icon: LucideIcon;
-  color: "green" | "red" | "rust";
-  currency?: string;
-};
-
-function DashSummary({
-  title,
-  sum,
-  percentage,
-  icon: Icon,
-  color,
-  currency = "MAD",
-}: DashSummaryProps) {
-  const styles = {
-    green: {
-      icon: "text-green-600/70 dark:text-green-500/80",
-      bg: "bg-green-500/50 dark:bg-green-800/50 border-green-500/50 dark:border-green-800/50",
-      badge: "bg-green-400/70 dark:bg-green-800/50 dark:text-green-400",
-    },
-    red: {
-      icon: "text-red-600/70 dark:text-red-500/80",
-      bg: "bg-red-500/50 dark:bg-red-800/50 border-red-500/50 dark:border-red-800/50",
-      badge: "bg-red-400/70 dark:bg-red-800/50 dark:text-red-400",
-    },
-    rust: {
-      icon: "text-rust-600/70 dark:text-rust-500/80",
-      bg: "bg-rust-500/50 dark:bg-rust-800/50 border-rust-500/50 dark:border-rust-800/50",
-      badge: "bg-rust-400/70 dark:bg-rust-800/50 text-rust-300",
-    },
-  };
-
-  const s = styles[color];
-
-  return (
-    <Card className="relative overflow-hidden border rounded-sm border-rust-600/50 hover:border-rust-600 transition-all duration-300 group">
-      <CardHeader className="flex flex-row items-center justify-between pb-3 space-y-0">
-        <div
-          className={`p-2.5 rounded-xl border transition-transform group-hover:scale-110 ${s.bg}`}
-        >
-          <Icon className={`size-5 ${s.icon}`} />
-        </div>
-
-        {percentage && (
-          <Badge
-            variant="outline"
-            className={`font-bold border-none ${s.badge}`}
-          >
-            {percentage}
-          </Badge>
-        )}
-      </CardHeader>
-
-      <CardContent className="space-y-1">
-        <p className="text-sm font-semibold dark:text-neutral-300 text-neutral-700">
-          {title}
-        </p>
-
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-3xl font-bold tracking-tight">{sum}</h2>
-
-          <span className="text-xs font-bold dark:text-neutral-300 text-neutral-700 mb-1">
-            {currency}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
