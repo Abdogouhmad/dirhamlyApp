@@ -1,4 +1,4 @@
-use crate::model::{Transaction, TxType};
+use crate::model::{MonthlyBalance, Transaction, TxType};
 use anyhow::Result;
 use chrono::NaiveDate;
 use rusqlite::{Connection, Row};
@@ -12,15 +12,14 @@ pub struct DiBase {
 }
 
 impl DiBase {
-    pub fn new(db_path: &str) -> Result<Self> {
+    pub fn new<P: AsRef<std::path::Path>>(db_path: P) -> Result<Self> {
         let conn = Connection::open(db_path)?;
         Ok(Self {
             conn: Arc::new(Mutex::new(conn)),
         })
     }
-
     pub fn initialize(&self) -> Result<()> {
-        // TODO: consider to use index on date for archive tables 
+        // TODO: consider to use index on date for archive tables
         let conn = self.conn.lock().unwrap();
         conn.execute(
             "CREATE TABLE IF NOT EXISTS transactions (
@@ -35,16 +34,12 @@ impl DiBase {
         )?;
         Ok(())
     }
-
     pub fn add_transaction(&self, tx: &Transaction) -> Result<i64> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare(
-            "INSERT INTO transactions (tx_type, amount, category, description, date)
-             VALUES (?1, ?2, ?3, ?4, ?5)
-             RETURNING id",
-        )?;
 
-        let id = stmt.query_row(
+        conn.execute(
+            "INSERT INTO transactions (tx_type, amount, category, description, date)
+         VALUES (?1, ?2, ?3, ?4, ?5)",
             rusqlite::params![
                 tx.tx_type.to_string(),
                 tx.amount.to_string(),
@@ -52,12 +47,13 @@ impl DiBase {
                 tx.description.as_deref(),
                 tx.date.format("%Y-%m-%d").to_string(),
             ],
-            |row| row.get(0),
         )?;
+
+        // ✅ Safe, works everywhere
+        let id = conn.last_insert_rowid();
 
         Ok(id)
     }
-
     pub fn get_all_transactions(&self) -> Result<Vec<Transaction>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
@@ -117,6 +113,55 @@ impl DiBase {
 
         println!("Deleted transaction with id: {}", id);
         Ok(())
+    }
+
+    pub fn get_monthly_balance(&self, year: i32) -> Result<Vec<MonthlyBalance>> {
+        let conn = self.conn.lock().unwrap();
+
+        let mut stmt = conn.prepare(
+            "SELECT 
+        strftime('%Y-%m', date) as year_month,
+        COALESCE(SUM(CASE WHEN tx_type = 'income' THEN amount ELSE 0 END), 0) as total_income,
+        COALESCE(SUM(CASE WHEN tx_type = 'expense' THEN amount ELSE 0 END), 0) as total_expense
+     FROM transactions 
+     WHERE strftime('%Y', date) = ?1
+     GROUP BY year_month
+     ORDER BY year_month ASC",
+        )?;
+
+        let rows = stmt.query_map([year.to_string()], |row| {
+            // Get as f64 directly since SQLite REAL → f64 is native
+            let income_f64: f64 = row.get("total_income")?;
+            let expense_f64: f64 = row.get("total_expense")?;
+
+            Ok(MonthlyBalance {
+                month: row.get("year_month")?,
+                income: Decimal::try_from(income_f64).unwrap_or_default(),
+                expense: Decimal::try_from(expense_f64).unwrap_or_default(),
+            })
+        })?;
+
+        let mut result = Vec::new();
+        for row in rows {
+            result.push(row?);
+        }
+
+        // Fill missing months with 0 (so chart always shows 12 months)
+        let mut full_year = vec![];
+        for m in 1..=12 {
+            let month_str = format!("{:04}-{:02}", year, m);
+            if let Some(existing) = result.iter().find(|r| r.month == month_str) {
+                full_year.push(existing.clone());
+            } else {
+                full_year.push(MonthlyBalance {
+                    month: month_str,
+                    income: Decimal::ZERO,
+                    expense: Decimal::ZERO,
+                });
+            }
+        }
+
+        Ok(full_year)
     }
 
     fn map_row(row: &Row) -> rusqlite::Result<Transaction> {

@@ -1,8 +1,7 @@
-"use client"
+"use client";
 
-import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-
+import { TrendingUp } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
@@ -10,66 +9,114 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 
-export const description = "A bar chart"
+type MonthlyData = {
+  month: string;
+  income: number;
+  expense: number;
+  balance: number;
+};
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-]
+const monthNames = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+  income: {
+    label: "Income",
+    color: "oklch(0.700 0.130 255)",
   },
-} satisfies ChartConfig
+  expense: {
+    label: "Expense",
+    color: "oklch(0.560 0.210 22)",
+  },
+} satisfies ChartConfig;
 
-export function ChartBarDefault() {
+function formatYAxis(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}k`;
+  return `${value}`;
+}
+
+export function ChartBarDefault({ data = [] }: { data?: MonthlyData[] }) {
+  const currentYear = new Date().getFullYear();
+
+  const chartData = data.map((item) => {
+    const monthNum = parseInt(item.month.split("-")[1]) - 1;
+    return {
+      month: monthNames[monthNum] ?? item.month.slice(5),
+      income: item.income,
+      expense: item.expense,
+    };
+  });
+
+  const hasData = chartData.some((d) => d.income > 0 || d.expense > 0);
+
   return (
-    <Card  >
+    <Card>
       <CardHeader>
-        <CardTitle>Bar Chart</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Monthly Balance</CardTitle>
+        <CardDescription>Income vs Expense — {currentYear}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8} />
-          </BarChart>
-        </ChartContainer>
+        {!hasData ? (
+          <div className="h-80 flex items-center justify-center text-muted-foreground text-sm">
+            No transactions yet for this year.
+          </div>
+        ) : (
+          <ChartContainer config={chartConfig}>
+            <BarChart accessibilityLayer data={chartData} barSize={25}>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tickFormatter={formatYAxis}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent
+                  indicator="dashed"
+                  formatter={(value, name, index) => (
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5  shrink-0"
+                        style={{ backgroundColor: index?.color ?? index?.fill }}
+                      />
+                      <span className="capitalize text-muted-foreground">{name}</span>
+                      <span className="font-semibold">{Number(value).toLocaleString("fr-MA")} MAD</span>
+                    </div>
+                  )}
+                />}
+              />
+              <Bar dataKey="income" fill="var(--color-income)" radius={4} />
+              <Bar dataKey="expense" fill="var(--color-expense)" radius={4} />
+            </BarChart>
+          </ChartContainer>
+        )}
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+        <div className="flex gap-2 font-medium leading-none">
+          Income vs Spending overview <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Grouped bars show income and expense per month
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

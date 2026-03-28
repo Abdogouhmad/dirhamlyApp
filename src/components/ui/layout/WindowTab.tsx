@@ -63,7 +63,7 @@ export default function TitleBar() {
         </Button>
         <Button
           variant="ghost"
-          className="h-full w-12 rounded-none hover:bg-red-600! hover:text-white! transition-colors group"
+          className="h-full w-12 rounded-none hover:bg-ember-600! hover:text-white! transition-colors group"
           onMouseDown={(e) => e.stopPropagation()} // Prevents drag interference
           onClick={handleClose}
         >

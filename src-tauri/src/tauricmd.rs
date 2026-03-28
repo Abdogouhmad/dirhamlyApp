@@ -1,5 +1,5 @@
 use crate::db::DiBase;
-use crate::model::{Transaction, TxType};
+use crate::model::{MonthlyBalance, Transaction, TxType};
 use chrono::NaiveDate;
 use rust_decimal::prelude::ToPrimitive;
 use rust_decimal::Decimal;
@@ -58,4 +58,10 @@ pub fn delete_tx(state: State<'_, DiBase>, id: i64) -> Result<(), String> {
     state
         .delete_transaction(id)
         .map_err(|e| format!("Failed to delete transaction: {}", e))
+}
+
+#[tauri::command]
+pub fn get_monthly_balance( state: State<'_, DiBase>, year: i32) -> Result<Vec<MonthlyBalance>, String> {
+    // assuming you have db: State<DiBase> or similar
+    state.get_monthly_balance(year).map_err(|e| e.to_string())
 }

@@ -17,7 +17,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { TxButton } from "./txButton";
-import {SettingsDialog } from "@/components/ui/profile/main"
+import { SettingsDialog } from "@/components/ui/profile/main"
 
 const NAV_ITEMS = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -55,10 +55,10 @@ export function AppSidebar() {
                 isCollapsed ? "hidden" : "flex",
               )}
             >
-              <div className="h-6 w-6 shrink-0 rounded bg-rust-500/20 flex items-center justify-center text-rust-500 font-bold text-xs">
+              <div className="h-6 w-6 shrink-0 rounded bg-cobalt-300/20 flex items-center justify-center text-cobalt-300 font-bold text-xs">
                 D
               </div>
-              <span className="font-bold uppercase tracking-wider text-rust-500 text-sm whitespace-nowrap">
+              <span className="font-bold uppercase tracking-wider text-cobalt-300 text-sm whitespace-nowrap">
                 Dirhamly
               </span>
             </div>
@@ -95,9 +95,10 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={location.pathname === item.url}
-                    tooltip={item.title} // Restored tooltip prop since we now have TooltipProvider
+                    tooltip={item.title}
+                    className="hover:text-cobalt-300 data-[active=true]:text-cobalt-300"   // ← Add this
                   >
-                    <Link to={item.url} className="hover:text-rust-400">
+                    <Link to={item.url} className="flex items-center gap-3">
                       <item.icon className="h-5 w-5" />
                       <span className="font-medium">{item.title}</span>
                     </Link>
@@ -118,18 +119,18 @@ export function AppSidebar() {
                   isCollapsed && "justify-center",
                 )}
               >
-                <Avatar className="h-9 w-9 shrink-0 border border-rust-500/30">
+                <Avatar className="h-9 w-9 shrink-0 border border-cobalt-300/30">
                   <AvatarImage
                     src="https://github.com/Abdogouhmad.png"
                     alt="Abdo"
                   />
-                  <AvatarFallback className="bg-rust-500/10 text-rust-500">
+                  <AvatarFallback className="bg-cobalt-300/10 text-cobalt-300">
                     AG
                   </AvatarFallback>
                 </Avatar>
 
                 {!isCollapsed && (
-                  <div className="flex flex-col text-sm overflow-hidden">
+                  <div className="flex flex-col text-sm overflow-hidden dark:text-iron-300 text-iron-700">
                     <span className="font-semibold truncate">
                       Abderrahman Gouhmad
                     </span>

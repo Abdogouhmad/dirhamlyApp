@@ -31,26 +31,26 @@ export default function DashSummary({
 }: DashSummaryProps) {
   const styles = {
     green: {
-      icon: "text-green-600/70 dark:text-green-500/80",
-      bg: "bg-green-500/50 dark:bg-green-800/50 border-green-500/50 dark:border-green-800/50",
-      badge: "bg-green-400/70 dark:bg-green-800/50 dark:text-green-400",
+      icon: "text-jade-600/70 dark:text-jade-500/80",
+      bg: "bg-jade-500/50 dark:bg-jade-800/50 border-jade-500/50 dark:border-jade-800/50",
+      badge: "bg-jade-400/70 dark:bg-jade-800/50 dark:text-jade-400",
     },
     red: {
-      icon: "text-red-600/70 dark:text-red-500/80",
-      bg: "bg-red-500/50 dark:bg-red-800/50 border-red-500/50 dark:border-red-800/50",
-      badge: "bg-red-400/70 dark:bg-red-800/50 dark:text-red-400",
+      icon: "text-ember-600/70 dark:text-ember-500/80",
+      bg: "bg-ember-500/50 dark:bg-ember-800/50 border-ember-500/50 dark:border-ember-800/50",
+      badge: "bg-ember-400/70 dark:bg-ember-800/50 dark:text-ember-400",
     },
     rust: {
-      icon: "text-rust-600/70 dark:text-rust-500/80",
-      bg: "bg-rust-500/50 dark:bg-rust-800/50 border-rust-500/50 dark:border-rust-800/50",
-      badge: "bg-rust-400/70 dark:bg-rust-800/50 dark:text-rust-300",
+      icon: "text-gold-600/70 dark:text-gold-300/80",
+      bg: "bg-gold-300/50 dark:bg-gold-800/50 border-gold-300/50 dark:border-gold-800/50",
+      badge: "bg-cobalt-400/70 dark:bg-cobalt-800/50 dark:text-gold-300",
     },
   };
 
   const s = styles[color];
 
   return (
-    <Card className="relative overflow-hidden border rounded-sm border-rust-600/50 hover:border-rust-600 transition-all duration-300 group">
+    <Card className="relative overflow-hidden border rounded-sm border-cobalt-300/50 hover:border-cobalt-300 transition-all duration-300 group">
       <CardHeader className="flex flex-row items-center justify-between pb-3 space-y-0">
         <div
           className={`p-2.5 rounded-xl border transition-transform group-hover:scale-110 ${s.bg}`}

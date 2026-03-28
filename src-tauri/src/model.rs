@@ -12,6 +12,13 @@ pub enum TxType {
     Expense,
 }
 
+#[derive(Debug, serde::Serialize, Clone)]
+pub struct MonthlyBalance {
+    pub month: String,      // "2026-01"
+    pub income: Decimal,
+    pub expense: Decimal,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transaction {
     pub id: Option<i64>,

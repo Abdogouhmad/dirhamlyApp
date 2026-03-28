@@ -24,7 +24,7 @@ export default function DashHeader({
         <button
           onClick={onRefresh}
           disabled={refreshing}
-          className="p-2 rounded-md border border-border hover:border-rust-500 text-muted-foreground hover:text-rust-500 transition-all duration-200 disabled:opacity-50"
+          className="p-2 rounded-md border border-border hover:border-cobalt-300 text-muted-foreground hover:text-cobalt-300 transition-all duration-200 disabled:opacity-50"
           title="Refresh data"
         >
           <RefreshCw

@@ -12,6 +12,21 @@ export type Transaction = {
   amount: string;         // stored as string from SQLite REAL
 };
 
+
+export type MonthlyBalance = {
+  month: string;     // "2026-03"
+  income: string;    // keep as string like your other amounts
+  expense: string;
+};
+
+export type MonthlyData = {
+  month: string;        // e.g. "2026-03" or "Mar"
+  income: number;
+  expense: number;
+  balance: number;
+};
+
+
 // ─── Fetch all transactions from Tauri backend ────────────────────────────────
 export async function getAllTransactions(): Promise<Transaction[]> {
   try {
@@ -54,3 +69,12 @@ export function formatCurrency(value: string | number): string {
 }
 
 
+export async function getMonthlyBalance(year?: number): Promise<MonthlyBalance[]> {
+  try {
+    const currentYear = year || new Date().getFullYear();
+    return await invoke<MonthlyBalance[]>("get_monthly_balance", { year: currentYear });
+  } catch (err) {
+    console.error("Failed to fetch monthly balance:", err);
+    return [];
+  }
+}

@@ -45,7 +45,7 @@ export function TxButton() {
           variant="secondary"
           size="lg"
           className={cn(
-            "transition-all duration-200 border-2 bg-foreground text-white dark:text-black hover:bg-rust-500 hover:border-rust-500/80",
+            "transition-all duration-200 border-2 bg-foreground text-white dark:text-black hover:bg-cobalt-300 hover:border-cobalt-300/80",
             isCollapsed
               ? "h-10 w-10 px-0 justify-center"
               : "w-full justify-start px-4",
@@ -212,7 +212,7 @@ function DiForm({ onSuccess }: { onSuccess: () => void }) {
         <Button
           type="submit"
           size="lg"
-          className="w-full hover:bg-rust-500"
+          className="w-full hover:bg-cobalt-300"
           disabled={loading}
         >
           {loading ? "Saving..." : "Save"}
@@ -223,7 +223,7 @@ function DiForm({ onSuccess }: { onSuccess: () => void }) {
             type="button"
             size="lg"
             variant="secondary"
-            className="w-full hover:bg-red-500 hover:text-white"
+            className="w-full hover:bg-ember-500 hover:text-white"
             disabled={loading}
           >
             Cancel
@@ -277,7 +277,7 @@ function TxTypeToggle({
           value === "income" ? "text-foreground font-medium" : "text-muted-foreground",
         )}
       >
-        <ArrowUpCircle className="h-4 w-4 text-green-500" />
+        <ArrowUpCircle className="h-4 w-4 text-jade-500" />
         Income
       </button>
       <button
@@ -288,7 +288,7 @@ function TxTypeToggle({
           value === "expense" ? "text-foreground font-medium" : "text-muted-foreground",
         )}
       >
-        <ArrowDownCircle className="h-4 w-4 text-red-500" />
+        <ArrowDownCircle className="h-4 w-4 text-ember-500" />
         Expense
       </button>
     </div>

@@ -2,8 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { TrendingUp, TrendingDown, Wallet, RefreshCw } from "lucide-react";
-import { Transaction, getAllTransactions, formatCurrency } from "./service/dashservice.ts";
-// import { formatCurrency } from "@/lib/currency";
+import {
+  Transaction,
+  getAllTransactions,
+  formatCurrency,
+  getMonthlyBalance,
+  MonthlyData,
+} from "./service/dashservice.ts";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "sonner";
 import { ChartBarDefault } from "../dashboard/widgets/chart";
@@ -13,10 +18,9 @@ import { getTableColumns } from "./widgets/tablecolumes";
 import DashHeader from "./widgets/dashheader";
 import DashSummary, { SummaryItem } from "./widgets/sumdata";
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
-
 export function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -31,8 +35,7 @@ export function Dashboard() {
     { income: 0, expense: 0, balance: 0 },
   );
 
-  const fetchTransactions = useCallback(async (showRefreshing = false) => {
-    if (showRefreshing) setRefreshing(true);
+  const fetchTransactions = useCallback(async () => {
     try {
       const txs = await getAllTransactions();
       setTransactions(txs);
@@ -41,19 +44,43 @@ export function Dashboard() {
       toast.error("Failed to load transactions");
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, []);
 
+  const fetchMonthlyData = useCallback(async () => {
+    try {
+      const raw = await getMonthlyBalance();
+      const formatted = raw.map((item) => ({
+        month: item.month,
+        income: parseFloat(item.income) || 0,
+        expense: parseFloat(item.expense) || 0,
+        balance: parseFloat(item.income) - parseFloat(item.expense),
+      }));
+      setMonthlyData(formatted);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  // Refreshes both transactions and chart data in parallel
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchTransactions(), fetchMonthlyData()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchTransactions, fetchMonthlyData]);
+
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]);
+    fetchMonthlyData();
+  }, [fetchTransactions, fetchMonthlyData]);
 
   const handleDelete = useCallback(
     async (id: number) => {
       if (!confirm("Are you sure you want to delete this transaction?")) return;
 
-      // Optimistic update — instant UI response
       setTransactions((prev) => prev.filter((tx) => tx.id !== id));
 
       try {
@@ -61,17 +88,16 @@ export function Dashboard() {
         toast.success("Transaction deleted", {
           description: "The record has been permanently removed.",
         });
-        // Re-fetch to ensure server state matches (handles edge cases)
-        await fetchTransactions();
+        // Refresh both so chart reflects the deletion too
+        await Promise.all([fetchTransactions(), fetchMonthlyData()]);
       } catch (err: any) {
-        // Rollback on failure by re-fetching the real state
-        await fetchTransactions();
+        await Promise.all([fetchTransactions(), fetchMonthlyData()]);
         toast.error("Delete failed", {
           description: err.message || "Could not delete the transaction.",
         });
       }
     },
-    [fetchTransactions],
+    [fetchTransactions, fetchMonthlyData],
   );
 
   const columns = getTableColumns(handleDelete);
@@ -104,7 +130,7 @@ export function Dashboard() {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="h-6 w-6 text-rust-500 animate-spin" />
+          <RefreshCw className="h-6 w-6 text-cobalt-300 animate-spin" />
           <p className="text-sm text-muted-foreground animate-pulse">
             Loading your finances...
           </p>
@@ -117,7 +143,7 @@ export function Dashboard() {
     <div className="min-h-screen selection:bg-[#4ade80]/30 p-6 space-y-6">
       <DashHeader
         name="Abdo"
-        onRefresh={() => fetchTransactions(true)}
+        onRefresh={handleRefresh}
         refreshing={refreshing}
       />
 
@@ -129,7 +155,7 @@ export function Dashboard() {
 
       <div className="flex lg:flex-row flex-col gap-4">
         <div className="w-full">
-          <ChartBarDefault />
+          <ChartBarDefault data={monthlyData} />
         </div>
         <div className="w-full">
           <ChartPieInteractive />
