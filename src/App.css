@@ -8,28 +8,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* --- RUST GRADING SCALE (50-900) --- */
-  --rust-50: oklch(0.965 0.010 30);
-  /* Faint warm gray tint */
-  --rust-100: oklch(0.915 0.020 30);
-  /* Soft muted beige-gray */
-  --rust-200: oklch(0.835 0.040 28);
-  /* Dusty clay (desaturated) */
-  --rust-300: oklch(0.740 0.070 26);
-  /* Muted oxide */
-  --rust-400: oklch(0.640 0.100 24);
-  /* Controlled rust tone */
-  --rust-500: oklch(0.560 0.120 22);
-  /* PRIMARY (cooler burnt rust) */
-  --rust-600: oklch(0.480 0.110 20);
-  /* Dark burnt metal */
-  --rust-700: oklch(0.380 0.090 18);
-  /* Deep iron oxide */
-  --rust-800: oklch(0.260 0.060 18);
-  /* Heavy industrial brown */
-  --rust-900: oklch(0.160 0.030 18);
-  /* Near-black with warm undertone */
-  --bg-tm: oklch(0.145 0 0);
   /* ============================================
        FULL COLOR SYSTEM — 7 palettes × 10 stops
        ============================================ */
@@ -230,18 +208,6 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* My custome colors*/
-  --color-rust-50: var(--rust-50);
-  --color-rust-100: var(--rust-100);
-  --color-rust-200: var(--rust-200);
-  --color-rust-300: var(--rust-300);
-  --color-rust-400: var(--rust-400);
-  --color-rust-500: var(--rust-500);
-  --color-rust-600: var(--rust-600);
-  --color-rust-700: var(--rust-700);
-  --color-rust-800: var(--rust-800);
-  --color-rust-900: var(--rust-900);
-  --color-dark: var(--bg-tm);
 
 
   /* Cobalt */

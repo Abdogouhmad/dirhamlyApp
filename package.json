@@ -1,7 +1,7 @@
 {
   "name": "dirhamly",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.5",
   "type": "module",
   "description": "A modern and efficient cross platform app for tracking your expenses and managing your budget.",
   "scripts": {

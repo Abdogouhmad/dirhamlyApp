@@ -17,7 +17,8 @@ import { Link, useLocation } from "react-router-dom";
 
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { TxButton } from "./txButton";
-import { SettingsDialog } from "@/components/ui/profile/main"
+import { SettingsDialog } from "@/components/ui/profile/main";
+import { useRefresh } from "@/lib/Refreshcontext";
 
 const NAV_ITEMS = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -29,6 +30,7 @@ export function AppSidebar() {
   const { state, isMobile, toggleSidebar } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed" && !isMobile;
+  const { refresh } = useRefresh();
 
   return (
     <TooltipProvider>
@@ -41,14 +43,13 @@ export function AppSidebar() {
         collapsible="icon"
       >
         {/* Header with brand + toggle */}
-        <SidebarHeader className="border-b h-15 flex justify-center ">
+        <SidebarHeader className="border-b h-15 flex justify-center">
           <div
             className={cn(
               "flex items-center",
               isCollapsed ? "justify-center w-full" : "justify-between w-full",
             )}
           >
-            {/* Brand - hide entirely when collapsed so the Menu toggle has space */}
             <div
               className={cn(
                 "flex items-center gap-2 overflow-hidden",
@@ -63,7 +64,6 @@ export function AppSidebar() {
               </span>
             </div>
 
-            {/* Toggle button - stays centered when collapsed */}
             {!isMobile && (
               <SidebarMenuButton
                 onClick={toggleSidebar}
@@ -78,14 +78,13 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent>
-          {/* Placed Add Transaction inside content so it scales properly */}
           <div
             className={cn(
               "pt-4 pb-2 transition-all duration-300",
               isCollapsed ? "p-1" : "p-3",
             )}
           >
-            <TxButton />
+            <TxButton onSuccess={refresh} />
           </div>
 
           <SidebarGroup>
@@ -96,7 +95,7 @@ export function AppSidebar() {
                     asChild
                     isActive={location.pathname === item.url}
                     tooltip={item.title}
-                    className="hover:text-cobalt-300 data-[active=true]:text-cobalt-300"   // ← Add this
+                    className="hover:text-cobalt-300 data-[active=true]:text-cobalt-300"
                   >
                     <Link to={item.url} className="flex items-center gap-3">
                       <item.icon className="h-5 w-5" />
