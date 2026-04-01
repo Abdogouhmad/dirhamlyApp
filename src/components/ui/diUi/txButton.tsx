@@ -21,22 +21,45 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
-  ArrowDownCircle,
-  ArrowUpCircle,
-  Banknote,
-  Plus,
-  Tag,
-} from "lucide-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowDownCircle, ArrowUpCircle, Banknote, Plus } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import {
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+  getCategoryMeta,
+} from "@/lib/txop";
 
-/* ---------------------- MAIN BUTTON & SHEET ---------------------- */
-export function TxButton() {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface TxButtonProps {
+  onSuccess?: () => Promise<void>;
+}
+
+interface DiFormProps {
+  onSuccess: () => Promise<void>;
+}
+
+// ─── TxButton ─────────────────────────────────────────────────────────────────
+
+export function TxButton({ onSuccess }: TxButtonProps) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed" && !isMobile;
   const [open, setOpen] = useState(false);
+
+  // Close the sheet and trigger parent data refresh
+  const handleSuccess = async () => {
+    setOpen(false);
+    await onSuccess?.();
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -45,7 +68,7 @@ export function TxButton() {
           variant="secondary"
           size="lg"
           className={cn(
-            "transition-all duration-200 border-2 bg-foreground text-white dark:text-black hover:bg-cobalt-300 hover:border-cobalt-300/80",
+            "transition-all duration-200 border-2 bg-cobalt-300 text-white dark:text-black hover:bg-cobalt-400 hover:border-cobalt-300/80",
             isCollapsed
               ? "h-10 w-10 px-0 justify-center"
               : "w-full justify-start px-4",
@@ -65,21 +88,18 @@ export function TxButton() {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto m-3">
-          {/* Unmounts on close → all state resets including txType */}
-          {open && <DiForm onSuccess={() => setOpen(false)} />}
+          {open && <DiForm onSuccess={handleSuccess} />}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
 
-/* ---------------------- FORM ---------------------- */
-function DiForm({ onSuccess }: { onSuccess: () => void }) {
-  // ref keeps txType readable synchronously at submit time,
-  // avoiding any stale closure that might plague useState alone
+// ─── DiForm ───────────────────────────────────────────────────────────────────
+
+function DiForm({ onSuccess }: DiFormProps) {
   const txTypeRef = useRef<"income" | "expense">("expense");
   const [txType, setTxType] = useState<"income" | "expense">("expense");
-
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -88,25 +108,29 @@ function DiForm({ onSuccess }: { onSuccess: () => void }) {
   );
   const [loading, setLoading] = useState(false);
 
+  const categories =
+    txType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
   const handleTxTypeChange = (type: "income" | "expense") => {
     txTypeRef.current = type;
     setTxType(type);
-    console.log("Toggle changed to:", type);
+    setCategory("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Read from ref — always the latest, no stale closure risk
     const currentTxType = txTypeRef.current;
-    console.log(">>> Submitting with txType:", currentTxType);
 
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast.error("Invalid amount", { description: "Please enter a positive number" });
+      toast.error("Invalid amount", {
+        description: "Please enter a positive number",
+      });
       return;
     }
-    if (!category.trim()) {
-      toast.error("Category is needed", { description: "Please enter a category" });
+    if (!category) {
+      toast.error("Category is needed", {
+        description: "Please select a category",
+      });
       return;
     }
     if (!date) {
@@ -115,28 +139,26 @@ function DiForm({ onSuccess }: { onSuccess: () => void }) {
     }
 
     setLoading(true);
-
     try {
       const id = await invoke<number>("add_tx", {
         txType: currentTxType,
         amount,
-        category: category.trim(),
+        category,
         description: description.trim() || null,
         date,
       });
 
-      console.log(">>> Saved id:", id, "as:", currentTxType);
       toast.success("Transaction added", {
         description: `ID: ${id} • ${currentTxType} • ${amount} MAD`,
       });
 
-      onSuccess();
+      // Close sheet and refresh parent data (fetchTransactions + fetchMonthlyData)
+      await onSuccess();
     } catch (err: any) {
       const msg =
         typeof err === "string"
           ? err
-          : err?.message ?? JSON.stringify(err) ?? "Unknown error";
-      console.error("add_tx error:", err);
+          : (err?.message ?? JSON.stringify(err) ?? "Unknown error");
       toast.error("Failed to save", { description: msg });
     } finally {
       setLoading(false);
@@ -164,38 +186,60 @@ function DiForm({ onSuccess }: { onSuccess: () => void }) {
             required
             disabled={loading}
           />
-          <InputGroupAddon className="text-xs font-semibold">MAD</InputGroupAddon>
-        </InputGroup>
-      </FormField>
-
-      {/* Category */}
-      <FormField label="Category" htmlFor="category">
-        <InputGroup>
-          <InputGroupAddon>
-            <Tag className="h-4 w-4" />
+          <InputGroupAddon className="text-xs font-semibold">
+            MAD
           </InputGroupAddon>
-          <InputGroupInput
-            id="category"
-            placeholder="e.g. Food, Salary, Rent..."
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
-            disabled={loading}
-          />
         </InputGroup>
       </FormField>
 
-      {/* Date */}
-      <FormField label="Date" htmlFor="tx-date">
-        <Input
-          id="tx-date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          disabled={loading}
-        />
-      </FormField>
+      {/* Category + Date side by side */}
+      <div className="flex flex-row gap-3">
+        <div className="flex-1">
+          <FormField label="Category" htmlFor="category">
+            <Select
+              value={category}
+              onValueChange={setCategory}
+              disabled={loading}
+            >
+              <SelectTrigger id="category" className="w-full">
+                <SelectValue placeholder="Select a category..." />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => {
+                  const meta = getCategoryMeta(cat);
+                  return (
+                    <SelectItem key={cat} value={cat}>
+                      <span className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "inline-block h-2 w-2 rounded-full border",
+                            meta.color,
+                          )}
+                        />
+                        {meta.label}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </FormField>
+        </div>
+
+        <div className="flex-1">
+          <FormField label="Date" htmlFor="tx-date">
+            <Input
+              id="tx-date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+              disabled={loading}
+              className="w-full"
+            />
+          </FormField>
+        </div>
+      </div>
 
       {/* Description */}
       <FormField label="Description" htmlFor="description">
@@ -211,13 +255,13 @@ function DiForm({ onSuccess }: { onSuccess: () => void }) {
       <SheetFooter className="flex gap-4 mt-6">
         <Button
           type="submit"
+          form="tx-form"
           size="lg"
           className="w-full hover:bg-cobalt-300"
           disabled={loading}
         >
           {loading ? "Saving..." : "Save"}
         </Button>
-
         <SheetClose asChild>
           <Button
             type="button"
@@ -234,7 +278,7 @@ function DiForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-/* ---------------------- REUSABLE COMPONENTS ---------------------- */
+// ─── FormField ────────────────────────────────────────────────────────────────
 
 function FormField({
   label,
@@ -253,6 +297,8 @@ function FormField({
   );
 }
 
+// ─── TxTypeToggle ─────────────────────────────────────────────────────────────
+
 function TxTypeToggle({
   value,
   onChange,
@@ -262,7 +308,6 @@ function TxTypeToggle({
 }) {
   return (
     <div className="relative flex p-1 bg-muted rounded-lg border border-border/50">
-      {/* Sliding pill — pointer-events-none so it never intercepts clicks */}
       <div
         className={cn(
           "absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] bg-background rounded-md shadow-sm transition-transform duration-300 pointer-events-none",
@@ -274,7 +319,9 @@ function TxTypeToggle({
         onClick={() => onChange("income")}
         className={cn(
           "relative w-1/2 flex items-center justify-center gap-2 py-2 text-sm z-10 rounded-md transition-colors duration-200 cursor-pointer",
-          value === "income" ? "text-foreground font-medium" : "text-muted-foreground",
+          value === "income"
+            ? "text-foreground font-medium"
+            : "text-muted-foreground",
         )}
       >
         <ArrowUpCircle className="h-4 w-4 text-jade-500" />
@@ -285,7 +332,9 @@ function TxTypeToggle({
         onClick={() => onChange("expense")}
         className={cn(
           "relative w-1/2 flex items-center justify-center gap-2 py-2 text-sm z-10 rounded-md transition-colors duration-200 cursor-pointer",
-          value === "expense" ? "text-foreground font-medium" : "text-muted-foreground",
+          value === "expense"
+            ? "text-foreground font-medium"
+            : "text-muted-foreground",
         )}
       >
         <ArrowDownCircle className="h-4 w-4 text-ember-500" />

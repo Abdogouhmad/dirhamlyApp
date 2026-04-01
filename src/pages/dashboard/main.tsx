@@ -17,12 +17,15 @@ import { DataTable } from "./widgets/table";
 import { getTableColumns } from "./widgets/tablecolumes";
 import DashHeader from "./widgets/dashheader";
 import DashSummary, { SummaryItem } from "./widgets/sumdata";
+import { useRefresh } from "@/lib/Refreshcontext.tsx";
 
 export function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { register } = useRefresh(); // ← grab register
 
   const { income, expense, balance } = transactions.reduce(
     (acc, tx) => {
@@ -62,7 +65,6 @@ export function Dashboard() {
     }
   }, []);
 
-  // Refreshes both transactions and chart data in parallel
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -71,6 +73,11 @@ export function Dashboard() {
       setRefreshing(false);
     }
   }, [fetchTransactions, fetchMonthlyData]);
+
+  // Register the refresh callback so TxButton (in sidebar) can trigger it
+  useEffect(() => {
+    register(handleRefresh);
+  }, [register, handleRefresh]);
 
   useEffect(() => {
     fetchTransactions();
@@ -81,6 +88,7 @@ export function Dashboard() {
     async (id: number) => {
       if (!confirm("Are you sure you want to delete this transaction?")) return;
 
+      // Optimistic remove — no reload flicker
       setTransactions((prev) => prev.filter((tx) => tx.id !== id));
 
       try {
@@ -88,9 +96,10 @@ export function Dashboard() {
         toast.success("Transaction deleted", {
           description: "The record has been permanently removed.",
         });
-        // Refresh both so chart reflects the deletion too
-        await Promise.all([fetchTransactions(), fetchMonthlyData()]);
+        // Sync chart data only (transactions already updated optimistically)
+        await fetchMonthlyData();
       } catch (err: any) {
+        // Restore state on failure
         await Promise.all([fetchTransactions(), fetchMonthlyData()]);
         toast.error("Delete failed", {
           description: err.message || "Could not delete the transaction.",
