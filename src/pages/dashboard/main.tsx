@@ -17,7 +17,7 @@ import { DataTable } from "./widgets/table";
 import { getTableColumns } from "./widgets/tablecolumes";
 import DashHeader from "./widgets/dashheader";
 import DashSummary, { SummaryItem } from "./widgets/sumdata";
-import { useRefresh } from "@/lib/Refreshcontext.tsx";
+import { useRefresh } from "@/lib/Refreshcontext";
 
 export function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -25,7 +25,7 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { register } = useRefresh(); // ← grab register
+  const { register } = useRefresh();
 
   const { income, expense, balance } = transactions.reduce(
     (acc, tx) => {
@@ -74,11 +74,13 @@ export function Dashboard() {
     }
   }, [fetchTransactions, fetchMonthlyData]);
 
-  // Register the refresh callback so TxButton (in sidebar) can trigger it
+  // Register handleRefresh and clean up on unmount
   useEffect(() => {
-    register(handleRefresh);
+    const unregister = register(handleRefresh);
+    return unregister;
   }, [register, handleRefresh]);
 
+  // Initial data load
   useEffect(() => {
     fetchTransactions();
     fetchMonthlyData();
@@ -96,7 +98,6 @@ export function Dashboard() {
         toast.success("Transaction deleted", {
           description: "The record has been permanently removed.",
         });
-        // Sync chart data only (transactions already updated optimistically)
         await fetchMonthlyData();
       } catch (err: any) {
         // Restore state on failure

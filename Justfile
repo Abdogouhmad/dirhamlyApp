@@ -45,7 +45,7 @@ clean-db-windows:
     @echo "Windows app data deleted."
 
 # Full reset (build + database)
-reset: clean-all clean-db-linux
+reset: clean-all clean-db-linux run
     @echo "Project and DB fully reset."
 
 # Clean then rebuild for Linux

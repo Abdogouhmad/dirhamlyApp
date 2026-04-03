@@ -1,28 +1,29 @@
 import { createContext, useContext, useRef } from "react";
 
 interface RefreshContextValue {
-  /** Register a refresh callback from any page */
-  register: (fn: () => Promise<void>) => void;
-  /** Call the currently registered refresh callback */
+  register: (fn: () => Promise<void>) => () => void; // returns unregister
   refresh: () => Promise<void>;
 }
 
 const RefreshContext = createContext<RefreshContextValue>({
-  register: () => {},
+  register: () => () => {},
   refresh: async () => {},
 });
 
 export function RefreshProvider({ children }: { children: React.ReactNode }) {
-  const callbackRef = useRef<(() => Promise<void>) | null>(null);
+  // Set instead of single ref — supports multiple subscribers
+  const callbacksRef = useRef<Set<() => Promise<void>>>(new Set());
 
   const register = (fn: () => Promise<void>) => {
-    callbackRef.current = fn;
+    callbacksRef.current.add(fn);
+    // Return an unregister function so components can clean up on unmount
+    return () => {
+      callbacksRef.current.delete(fn);
+    };
   };
 
   const refresh = async () => {
-    if (callbackRef.current) {
-      await callbackRef.current();
-    }
+    await Promise.all([...callbacksRef.current].map((fn) => fn()));
   };
 
   return (

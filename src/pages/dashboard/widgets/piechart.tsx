@@ -81,11 +81,12 @@ export function ChartPieInteractive() {
 
   const [txType, setTxType] = React.useState<TxType>("expense");
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
-  const [activeCategory, setActiveCategory] = React.useState<Category | null>(null);
+  const [activeCategory, setActiveCategory] = React.useState<Category | null>(
+    null,
+  );
 
   const { register } = useRefresh();
 
-  // Fetch transactions from backend
   const fetchData = React.useCallback(async () => {
     try {
       const txs = await getAllTransactions();
@@ -95,14 +96,15 @@ export function ChartPieInteractive() {
     }
   }, []);
 
-  // Initial fetch on mount
+  // Initial fetch
   React.useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Register into RefreshContext — called whenever add/delete fires refresh()
+  // Register into context and clean up on unmount
   React.useEffect(() => {
-    register(fetchData);
+    const unregister = register(fetchData);
+    return unregister;
   }, [register, fetchData]);
 
   // Aggregate amounts per category for selected tx type
@@ -157,28 +159,32 @@ export function ChartPieInteractive() {
 
         <Select value={txType} onValueChange={(v) => setTxType(v as TxType)}>
           <SelectTrigger
-            className="ml-auto h-7 w-[120px] rounded-lg pl-2.5"
+            className="ml-auto h-7 w-30 rounded-lg pl-2.5"
             aria-label="Select transaction type"
           >
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="end" className="rounded-xl">
-            <SelectItem value="expense" className="rounded-lg">Expenses</SelectItem>
-            <SelectItem value="income" className="rounded-lg">Income</SelectItem>
+            <SelectItem value="expense" className="rounded-lg">
+              Expenses
+            </SelectItem>
+            <SelectItem value="income" className="rounded-lg">
+              Income
+            </SelectItem>
           </SelectContent>
         </Select>
       </CardHeader>
 
       <CardContent className="flex flex-1 justify-center pb-0">
         {chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-[300px] text-sm text-muted-foreground">
+          <div className="flex items-center justify-center h-75 text-sm text-muted-foreground">
             No {txType} data yet
           </div>
         ) : (
           <ChartContainer
             id={id}
             config={chartConfig}
-            className="mx-auto aspect-square w-full max-w-[300px]"
+            className="mx-auto aspect-square w-full max-w-75"
           >
             <PieChart>
               <ChartTooltip
