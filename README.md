@@ -1,8 +1,13 @@
-# Tauri + React + Typescript
+# Dirhamly
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
-## usefull links
-https://tauri.app/develop/calling-rust/
-## Recommended IDE Setup
+Dirhamly is a fast, simple and modern desktop app built on the top of
+rust, react, and tailwind. It is meant to simplify the tracking of income & expense.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Features
+
+> [!WARNING]
+> the app is using the up to date features this to keep users who are interested on track.
+
+- [ ] Add transaction
+- [ ] remove transaction
+- [ ] charts
