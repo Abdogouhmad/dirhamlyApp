@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=
+Comment=A modern and efficient cross platform app for tracking your expenses and managing your budget.
+Exec=dirhamly
+StartupWMClass=dirhamly
+Icon=dirhamly
+Name=dirhamly
+Terminal=false
+Type=Application

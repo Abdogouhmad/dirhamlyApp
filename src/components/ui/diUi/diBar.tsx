@@ -10,7 +10,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import { LayoutDashboard, BarChart3, Wallet, Menu } from "lucide-react";
+import { LayoutDashboard, Menu } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
@@ -22,8 +22,8 @@ import { useRefresh } from "@/lib/Refreshcontext";
 
 const NAV_ITEMS = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Insights", url: "/insights", icon: BarChart3 },
-  { title: "Budgets", url: "/budgets", icon: Wallet },
+  // { title: "Insights", url: "/insights", icon: BarChart3 },
+  // { title: "Budgets", url: "/budgets", icon: Wallet },
 ];
 
 export function AppSidebar() {
@@ -120,8 +120,8 @@ export function AppSidebar() {
               >
                 <Avatar className="h-9 w-9 shrink-0 border border-cobalt-300/30">
                   <AvatarImage
-                    src="https://github.com/Abdogouhmad.png"
-                    alt="Abdo"
+                    src="https://i.pinimg.com/736x/a0/72/7f/a0727f73982fe748cd49651090d3849f.jpg"
+                    alt="Local user"
                   />
                   <AvatarFallback className="bg-cobalt-300/10 text-cobalt-300">
                     AG
@@ -131,7 +131,7 @@ export function AppSidebar() {
                 {!isCollapsed && (
                   <div className="flex flex-col text-sm overflow-hidden dark:text-iron-300 text-iron-700">
                     <span className="font-semibold truncate">
-                      Abderrahman Gouhmad
+                      Local User
                     </span>
                     <span className="text-xs text-muted-foreground truncate">
                       Manager

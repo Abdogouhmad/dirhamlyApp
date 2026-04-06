@@ -152,7 +152,7 @@ export function Dashboard() {
   return (
     <div className="min-h-screen selection:bg-[#4ade80]/30 p-6 space-y-6">
       <DashHeader
-        name="Abdo"
+        name="User"
         onRefresh={handleRefresh}
         refreshing={refreshing}
       />
