@@ -1,12 +1,10 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -32,11 +30,17 @@ const monthNames = [
 const chartConfig = {
   income: {
     label: "Income",
-    color: "oklch(0.700 0.130 255)",
+    theme: {
+      light: "var(--jade-500)",
+      dark: "var(--jade-500)",
+    },
   },
   expense: {
     label: "Expense",
-    color: "oklch(0.560 0.210 22)",
+    theme: {
+      light: "var(--ember-500)",
+      dark: "var(--ember-500)",
+    },
   },
 } satisfies ChartConfig;
 
@@ -61,62 +65,69 @@ export function ChartBarDefault({ data = [] }: { data?: MonthlyData[] }) {
   const hasData = chartData.some((d) => d.income > 0 || d.expense > 0);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Monthly Balance</CardTitle>
-        <CardDescription>Income vs Expense — {currentYear}</CardDescription>
+    <Card className="flex flex-col h-full border-none bg-white/[0.01] backdrop-blur-sm">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-bold tracking-tight">Financial Overview</CardTitle>
+            <CardDescription className="text-muted-foreground/60">
+              Income vs Expenses for {currentYear}
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/50">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-jade-500" />
+              Income
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-ember-500" />
+              Expense
+            </div>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 pb-6 pt-2">
         {!hasData ? (
-          <div className="h-80 flex items-center justify-center text-muted-foreground text-sm">
-            No transactions yet for this year.
+          <div className="h-80 flex items-center justify-center text-muted-foreground/40 text-sm italic">
+            No transaction history for this period.
           </div>
         ) : (
-          <ChartContainer config={chartConfig}>
-            <BarChart accessibilityLayer data={chartData} barSize={25}>
-              <CartesianGrid vertical={false} />
+          <ChartContainer config={chartConfig} className="h-80 w-full">
+            <BarChart accessibilityLayer data={chartData} barSize={20} barGap={8}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
               <XAxis
                 dataKey="month"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={12}
                 axisLine={false}
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 11, fontWeight: 600 }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tickMargin={10}
+                tickMargin={12}
                 tickFormatter={formatYAxis}
+                tick={{ fill: 'var(--muted-foreground)', fontSize: 11, fontWeight: 600 }}
               />
               <ChartTooltip
-                cursor={false}
+                cursor={{ fill: 'var(--white)', opacity: 0.05 }}
                 content={<ChartTooltipContent
-                  indicator="dashed"
-                  formatter={(value, name, index) => (
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="h-2.5 w-2.5  shrink-0"
-                        style={{ backgroundColor: index?.color ?? index?.fill }}
-                      />
-                      <span className="capitalize text-muted-foreground">{name}</span>
-                      <span className="font-semibold">{Number(value).toLocaleString("fr-MA")} MAD</span>
+                  className="backdrop-blur-2xl border-white/10 bg-background/90"
+                  indicator="dot"
+                  formatter={(value, name) => (
+                    <div className="flex items-center justify-between gap-4 w-full">
+                      <span className="capitalize text-muted-foreground/80 font-medium">{name}</span>
+                      <span className="font-bold text-foreground">{Number(value).toLocaleString("fr-MA")} MAD</span>
                     </div>
                   )}
                 />}
               />
-              <Bar dataKey="income" fill="var(--color-income)" radius={4} />
-              <Bar dataKey="expense" fill="var(--color-expense)" radius={4} />
+              <Bar dataKey="income" fill="var(--jade-500)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="expense" fill="var(--ember-500)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ChartContainer>
         )}
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Income vs Spending overview <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Grouped bars show income and expense per month
-        </div>
-      </CardFooter>
     </Card>
   );
 }

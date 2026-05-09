@@ -114,6 +114,13 @@ pub struct Transaction {
     pub date: NaiveDate,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Profile {
+    pub name: String,
+    pub image: Option<String>,
+    pub currency: String,
+}
+
 impl Transaction {
     pub fn new(
         tx_type: TxType,

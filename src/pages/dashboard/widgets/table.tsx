@@ -59,9 +59,9 @@ export function DataTable<TData, TValue>({
     (table.getColumn("tx_type")?.getFilterValue() as string) ?? "all";
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Filters */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {/* Type filter */}
         <Select
           value={typeValue}
@@ -71,30 +71,30 @@ export function DataTable<TData, TValue>({
               ?.setFilterValue(val === "all" ? undefined : val);
           }}
         >
-          <SelectTrigger className="w-36 h-9 text-sm border-border">
+          <SelectTrigger className="w-40 h-10 rounded-xl bg-white/[0.03] border-white/10 backdrop-blur-md">
             <SelectValue placeholder="All types" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="income">Income</SelectItem>
-            <SelectItem value="expense">Expense</SelectItem>
+          <SelectContent className="backdrop-blur-2xl">
+            <SelectItem value="all">All transactions</SelectItem>
+            <SelectItem value="income">Income only</SelectItem>
+            <SelectItem value="expense">Expenses only</SelectItem>
           </SelectContent>
         </Select>
 
         {/* Category search */}
-        <div className="relative flex-1 max-w-xs">
+        <div className="relative flex-1 max-w-sm">
           <Input
-            placeholder="Search category..."
+            placeholder="Search transactions..."
             value={
               (table.getColumn("category")?.getFilterValue() as string) ?? ""
             }
             onChange={(e) =>
               table.getColumn("category")?.setFilterValue(e.target.value)
             }
-            className="h-9 text-sm pl-9 border-border"
+            className="h-10 text-sm pl-10 rounded-xl bg-white/[0.03] border-white/10 backdrop-blur-md"
           />
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -110,25 +110,24 @@ export function DataTable<TData, TValue>({
         </div>
 
         {/* Result count */}
-        <span className="ml-auto text-xs text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} result
-          {table.getFilteredRowModel().rows.length !== 1 ? "s" : ""}
+        <span className="ml-auto text-xs font-bold uppercase tracking-widest text-muted-foreground/50">
+          {table.getFilteredRowModel().rows.length} total
         </span>
       </div>
 
       {/* Table */}
-      <div className="rounded-sm border border-border overflow-hidden">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.01] backdrop-blur-sm overflow-hidden shadow-xl shadow-black/20">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="border-border hover:bg-transparent"
+                className="border-white/5 hover:bg-transparent bg-white/[0.02]"
               >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                    className="h-12 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70"
                   >
                     {header.isPlaceholder
                       ? null
@@ -146,10 +145,10 @@ export function DataTable<TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="border-border hover:bg-muted/30 transition-colors"
+                  className="border-white/5 hover:bg-white/[0.03] transition-all duration-200 group"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3">
+                    <TableCell key={cell.id} className="py-4 text-[13px] font-medium">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -162,9 +161,9 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground text-sm"
+                  className="h-32 text-center text-muted-foreground/60 text-sm italic"
                 >
-                  No transactions found.
+                  No transactions match your criteria.
                 </TableCell>
               </TableRow>
             )}
@@ -173,29 +172,30 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-          className="h-8 px-3 text-xs border-border"
-        >
-          Previous
-        </Button>
-        <span className="text-xs text-muted-foreground px-1">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          className="h-8 px-3 text-xs border-border"
-        >
-          Next
-        </Button>
+      <div className="flex items-center justify-between pt-2">
+        <p className="text-xs text-muted-foreground/60 font-medium">
+          Showing page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="h-9 px-4 rounded-xl text-xs font-bold uppercase tracking-wider"
+          >
+            Prev
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="h-9 px-4 rounded-xl text-xs font-bold uppercase tracking-wider"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );

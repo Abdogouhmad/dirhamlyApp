@@ -8,11 +8,15 @@ import { cn } from "@/lib/utils";
 import { Transaction } from "../service/dashservice";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
+import { formatAmount } from "@/lib/currency";
+
+import { Trash2 } from "lucide-react";
 
 export type TransactionRow = Transaction;
 
 export function getTableColumns(
   onDelete: (id: number) => void,
+  currencyCode = "MAD"
 ): ColumnDef<Transaction>[] {
   const getLocale = () => {
     const userLocale = navigator.language || "en-US";
@@ -33,49 +37,66 @@ export function getTableColumns(
         const date = new Date(dateValue);
 
         if (isNaN(date.getTime())) {
-          return <div className="text-muted-foreground">Invalid date</div>;
+          return <div className="text-muted-foreground italic">Invalid date</div>;
         }
 
-        const formattedDate = format(date, "PPP", { locale });
+        const formattedDate = format(date, "MMM dd, yyyy", { locale });
 
-        return <div className="font-medium">{formattedDate}</div>;
+        return <div className="font-semibold text-foreground/90">{formattedDate}</div>;
       },
     },
     {
       accessorKey: "tx_type",
-      header: "Type",
+      header: () => (
+        <div className="text-left">
+          Type
+        </div>
+      ),
       enableSorting: true,
       filterFn: "equals",
       cell: ({ row }) => {
         const type = row.getValue("tx_type") as "income" | "expense";
         return (
-          <Badge
-            variant="outline"
-            className={
-              type === "income"
-                ? "border-jade-500/40 text-jade-500 bg-jade-500/10"
-                : "border-ember-500/40 text-ember-500 bg-ember-500/10"
-            }
-          >
-            {type === "income" ? "Income" : "Expense"}
-          </Badge>
+          <div className="flex justify-start">
+            <Badge
+              variant="outline"
+              className={cn(
+                "rounded-full px-3 py-0.5 border-none font-bold text-[10px] uppercase tracking-wider -ml-3",
+                type === "income"
+                  ? "text-jade-400 bg-jade-500/10"
+                  : "text-ember-400 bg-ember-500/10"
+              )}
+            >
+              {type === "income" ? "Income" : "Expense"}
+            </Badge>
+          </div>
         );
       },
     },
     {
       accessorKey: "category",
-      header: "Category",
+      header: () => (
+        <div className="text-left">
+          Category
+        </div>
+      ),
       enableSorting: true,
       cell: ({ row }) => {
         const cat = row.getValue("category") as string;
         const meta = getCategoryMeta(cat);
         return (
-          <Badge
-            variant="outline"
-            className={cn("capitalize font-medium", meta.color)}
-          >
-            {meta.label}
-          </Badge>
+          <div className="flex justify-start">
+            <Badge
+              variant="outline"
+              className={cn(
+                "rounded-full px-3 py-0.5 border-white/5 bg-white/5 capitalize font-semibold text-[10px] text-foreground/80 uppercase tracking-wider  -ml-3",
+                meta.color.replace("border-", "text-").replace("/40", "")
+              )}
+            >
+              <span className={cn("rounded-full shrink-0", meta.color.replace("border-", "bg-"))} />
+              {meta.label}
+            </Badge>
+          </div>
         );
       },
     },
@@ -85,37 +106,34 @@ export function getTableColumns(
       cell: ({ row }) => {
         const desc = row.getValue("description") as string | null;
         return desc?.trim() ? (
-          <div className="text-muted-foreground line-clamp-1">{desc}</div>
+          <div className="text-muted-foreground/80 font-medium line-clamp-1 italic max-w-[200px]">{desc}</div>
         ) : (
-          <span className="text-muted-foreground/70">—</span>
+          <span className="text-muted-foreground/30">—</span>
         );
       },
     },
     {
       accessorKey: "amount",
       header: () => (
-        <div className="text-left text-sm font-semibold tracking-wide">
+        <div className="text-right">
           Amount
         </div>
       ),
       cell: ({ row }) => {
         const amount = parseFloat(row.getValue("amount") as string) || 0;
         const type = row.original.tx_type;
-        const formatted = new Intl.NumberFormat("fr-MA", {
-          style: "currency",
-          currency: "MAD",
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(amount);
+        const formatted = formatAmount(amount, currencyCode);
+        
         return (
           <div
             className={cn(
-              "text-left font-semibold",
+              "text-right font-bold text-base",
               type === "income" ? "text-jade-500" : "text-ember-500",
             )}
           >
             {type === "income" ? "+" : "-"}
-            {formatted}
+            {formatted.replace(currencyCode, "").trim()}
+            <span className="text-[10px] ml-1 opacity-60">{currencyCode}</span>
           </div>
         );
       },
@@ -123,7 +141,7 @@ export function getTableColumns(
     {
       id: "actions",
       header: () => (
-        <div className="text-center text-sm font-semibold tracking-wide">
+        <div className="text-center">
           Actions
         </div>
       ),
@@ -136,10 +154,10 @@ export function getTableColumns(
           <div className="flex justify-center">
             <button
               onClick={() => onDelete(id)}
-              className="text-ember-400 font-semibold hover:text-ember-600 transition-all duration-200 p-1.5 rounded-md hover:bg-ember-500/10 group"
+              className="text-muted-foreground hover:text-ember-500 transition-all duration-200 p-2 rounded-xl hover:bg-ember-500/10 group active:scale-90"
               title="Delete transaction"
             >
-              DELETE
+              <Trash2 className="size-4" />
             </button>
           </div>
         );

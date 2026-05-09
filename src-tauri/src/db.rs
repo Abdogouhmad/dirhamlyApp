@@ -32,7 +32,43 @@ impl DiBase {
             )",
             [],
         )?;
+
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS profile (
+                id       INTEGER PRIMARY KEY CHECK (id = 1),
+                name     TEXT NOT NULL,
+                image    TEXT,
+                currency TEXT NOT NULL DEFAULT 'MAD'
+            )",
+            [],
+        )?;
         Ok(())
+    }
+
+    pub fn upsert_profile(&self, profile: &crate::model::Profile) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "INSERT INTO profile (id, name, image, currency) VALUES (1, ?1, ?2, ?3)
+             ON CONFLICT(id) DO UPDATE SET name = ?1, image = ?2, currency = ?3",
+            rusqlite::params![profile.name, profile.image, profile.currency],
+        )?;
+        Ok(())
+    }
+
+    pub fn get_profile(&self) -> Result<Option<crate::model::Profile>> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare("SELECT name, image, currency FROM profile WHERE id = 1")?;
+        let mut rows = stmt.query([])?;
+
+        if let Some(row) = rows.next()? {
+            Ok(Some(crate::model::Profile {
+                name: row.get(0)?,
+                image: row.get(1)?,
+                currency: row.get(2)?,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn add_transaction(&self, tx: &Transaction) -> Result<i64> {
@@ -91,6 +127,27 @@ impl DiBase {
         let rows_affected = conn.execute("DELETE FROM transactions WHERE id = ?1", [id])?;
         if rows_affected == 0 {
             return Err(anyhow::anyhow!("No transaction found with id {}", id));
+        }
+        Ok(())
+    }
+
+    pub fn bulk_convert_amounts(&self, rate: f64) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare("SELECT id, amount FROM transactions")?;
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+        })?;
+
+        let rate_dec = Decimal::from_f64_retain(rate).unwrap_or(Decimal::ONE);
+
+        for row in rows {
+            let (id, amount_str) = row?;
+            let amount = Decimal::from_str(&amount_str).unwrap_or_default();
+            let new_amount = (amount * rate_dec).round_dp(2);
+            conn.execute(
+                "UPDATE transactions SET amount = ?1 WHERE id = ?2",
+                rusqlite::params![new_amount.to_string(), id],
+            )?;
         }
         Ok(())
     }

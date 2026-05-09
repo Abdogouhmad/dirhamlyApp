@@ -12,19 +12,19 @@ export default function DashHeader({
   return (
     <div className="flex items-center justify-between w-full pb-5">
       <div>
-        <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
-          Dashboard
-        </p>
-        <h2 className="text-2xl font-bold tracking-tight">
-          Welcome back, {name}
+        <h2 className="text-3xl font-bold tracking-tight">
+          Good morning, {name} 👋
         </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Here’s what’s happening with your finances today.
+        </p>
       </div>
 
       <div className="flex items-center gap-3">
         <button
           onClick={onRefresh}
           disabled={refreshing}
-          className="p-2 rounded-md border border-border hover:border-cobalt-300 text-muted-foreground hover:text-cobalt-300 transition-all duration-200 disabled:opacity-50"
+          className="p-2.5 rounded-xl border border-border hover:border-cobalt-300 text-muted-foreground hover:text-cobalt-300 transition-all duration-200 disabled:opacity-50 bg-white/5 backdrop-blur-sm"
           title="Refresh data"
         >
           <RefreshCw

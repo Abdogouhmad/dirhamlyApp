@@ -2,7 +2,10 @@ mod db;
 mod model;
 mod tauricmd;
 use crate::db::DiBase;
-use crate::tauricmd::{add_tx, delete_tx, get_all, get_balance, get_by_month, get_monthly_balance};
+use crate::tauricmd::{
+    add_tx, convert_all_tx, delete_tx, get_all, get_balance, get_by_month, get_monthly_balance,
+    get_profile, set_profile,
+};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -38,7 +41,10 @@ pub fn run() {
             get_by_month,
             get_balance,
             delete_tx,
-            get_monthly_balance
+            get_monthly_balance,
+            get_profile,
+            set_profile,
+            convert_all_tx
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

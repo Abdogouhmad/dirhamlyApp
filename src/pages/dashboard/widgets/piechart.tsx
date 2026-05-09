@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
@@ -146,45 +147,45 @@ export function ChartPieInteractive() {
   );
 
   return (
-    <Card data-chart={id} className="flex flex-col">
+    <Card data-chart={id} className="flex flex-col h-full border-none bg-white/[0.01] backdrop-blur-sm">
       <ChartStyle id={id} config={chartConfig} />
 
-      <CardHeader className="flex-row items-start space-y-0 pb-0">
+      <CardHeader className="flex-row items-start space-y-0 pb-2">
         <div className="grid gap-1">
-          <CardTitle>Spending by Category</CardTitle>
-          <CardDescription>
-            {txType === "expense" ? "Expense" : "Income"} breakdown
+          <CardTitle className="text-xl font-bold tracking-tight">Spending Analysis</CardTitle>
+          <CardDescription className="text-muted-foreground/60">
+            {txType === "expense" ? "Expenses" : "Income"} by category
           </CardDescription>
         </div>
 
         <Select value={txType} onValueChange={(v) => setTxType(v as TxType)}>
           <SelectTrigger
-            className="ml-auto h-7 w-30 rounded-lg pl-2.5"
-            aria-label="Select transaction type"
+            className="ml-auto h-9 w-32 rounded-xl bg-white/[0.05] border-white/5 backdrop-blur-md pl-3 font-semibold text-xs uppercase tracking-wider"
+            aria-label="Select type"
           >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent align="end" className="rounded-xl">
-            <SelectItem value="expense" className="rounded-lg">
+          <SelectContent align="end" className="rounded-2xl backdrop-blur-2xl">
+            <SelectItem value="expense" className="rounded-xl font-medium">
               Expenses
             </SelectItem>
-            <SelectItem value="income" className="rounded-lg">
+            <SelectItem value="income" className="rounded-xl font-medium">
               Income
             </SelectItem>
           </SelectContent>
         </Select>
       </CardHeader>
 
-      <CardContent className="flex flex-1 justify-center pb-0">
+      <CardContent className="flex flex-1 justify-center pb-0 pt-4">
         {chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-75 text-sm text-muted-foreground">
-            No {txType} data yet
+          <div className="flex items-center justify-center h-80 text-sm text-muted-foreground/40 italic">
+            No data recorded for this type.
           </div>
         ) : (
           <ChartContainer
             id={id}
             config={chartConfig}
-            className="mx-auto aspect-square w-full max-w-75"
+            className="mx-auto aspect-square w-full max-w-72"
           >
             <PieChart>
               <ChartTooltip
@@ -192,9 +193,12 @@ export function ChartPieInteractive() {
                 content={
                   <ChartTooltipContent
                     hideLabel
-                    formatter={(value) =>
-                      `${Number(value).toLocaleString()} MAD`
-                    }
+                    className="backdrop-blur-2xl border-white/10 bg-background/90"
+                    formatter={(value) => (
+                      <span className="font-bold text-foreground">
+                        {Number(value).toLocaleString()} <span className="text-[10px] opacity-60">MAD</span>
+                      </span>
+                    )}
                   />
                 }
               />
@@ -202,19 +206,21 @@ export function ChartPieInteractive() {
                 data={chartData}
                 dataKey="amount"
                 nameKey="category"
-                innerRadius={60}
-                strokeWidth={5}
+                innerRadius={65}
+                strokeWidth={8}
+                stroke="transparent"
                 activeIndex={activeIndex}
                 activeShape={({
                   outerRadius = 0,
                   ...props
                 }: PieSectorDataItem) => (
                   <g>
-                    <Sector {...props} outerRadius={outerRadius + 10} />
+                    <Sector {...props} outerRadius={outerRadius + 8} />
                     <Sector
                       {...props}
-                      outerRadius={outerRadius + 25}
-                      innerRadius={outerRadius + 12}
+                      outerRadius={outerRadius + 18}
+                      innerRadius={outerRadius + 10}
+                      opacity={0.3}
                     />
                   </g>
                 )}
@@ -236,7 +242,7 @@ export function ChartPieInteractive() {
                           <tspan
                             x={viewBox.cx}
                             y={viewBox.cy}
-                            className="fill-foreground text-2xl font-bold"
+                            className="fill-foreground text-3xl font-black tracking-tight"
                           >
                             {activeSlice
                               ? activeSlice.amount.toLocaleString()
@@ -244,12 +250,12 @@ export function ChartPieInteractive() {
                           </tspan>
                           <tspan
                             x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 22}
-                            className="fill-muted-foreground text-xs"
+                            y={(viewBox.cy || 0) + 24}
+                            className="fill-muted-foreground/60 text-[10px] font-bold uppercase tracking-widest"
                           >
                             {activeSlice
                               ? getCategoryMeta(activeSlice.category).label
-                              : "MAD total"}
+                              : "MAD Total"}
                           </tspan>
                         </text>
                       );
@@ -264,15 +270,23 @@ export function ChartPieInteractive() {
 
       {/* Legend */}
       {chartData.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 px-4 pb-4 pt-2">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2.5 px-6 pb-8 pt-4">
           {chartData.map((slice) => (
             <button
               key={slice.category}
               onClick={() => setActiveCategory(slice.category)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className={cn(
+                "flex items-center gap-2 text-[11px] font-semibold transition-all duration-200",
+                activeCategory === slice.category 
+                  ? "text-foreground scale-110" 
+                  : "text-muted-foreground/60 hover:text-muted-foreground hover:scale-105"
+              )}
             >
               <span
-                className="inline-block h-2.5 w-2.5 rounded-sm shrink-0"
+                className={cn(
+                  "inline-block h-2 w-2 rounded-full shrink-0 shadow-sm",
+                  activeCategory === slice.category && "ring-4 ring-white/5"
+                )}
                 style={{ backgroundColor: slice.fill }}
               />
               {getCategoryMeta(slice.category).label}

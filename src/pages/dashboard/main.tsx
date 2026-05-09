@@ -5,10 +5,10 @@ import { TrendingUp, TrendingDown, Wallet, RefreshCw } from "lucide-react";
 import {
   Transaction,
   getAllTransactions,
-  formatCurrency,
   getMonthlyBalance,
   MonthlyData,
 } from "./service/dashservice.ts";
+import { formatAmount } from "@/lib/currency";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "sonner";
 import { ChartBarDefault } from "../dashboard/widgets/chart";
@@ -18,6 +18,7 @@ import { getTableColumns } from "./widgets/tablecolumes";
 import DashHeader from "./widgets/dashheader";
 import DashSummary, { SummaryItem } from "./widgets/sumdata";
 import { useRefresh } from "@/lib/Refreshcontext";
+import { useProfile } from "@/lib/ProfileContext";
 
 export function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -26,6 +27,7 @@ export function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
   const { register } = useRefresh();
+  const { profile } = useProfile();
 
   const { income, expense, balance } = transactions.reduce(
     (acc, tx) => {
@@ -110,29 +112,37 @@ export function Dashboard() {
     [fetchTransactions, fetchMonthlyData],
   );
 
-  const columns = getTableColumns(handleDelete);
+  const userCurrency = profile?.currency || "MAD";
+  const columns = getTableColumns(handleDelete, userCurrency);
 
   const summaryData: SummaryItem[] = [
     {
       id: "income",
       title: "Total Income",
-      sum: formatCurrency(income.toFixed(2)),
+      sum: formatAmount(income, userCurrency),
       icon: TrendingUp,
       color: "green",
     },
     {
       id: "expense",
       title: "Total Expenses",
-      sum: formatCurrency(expense.toFixed(2)),
+      sum: formatAmount(expense, userCurrency),
       icon: TrendingDown,
       color: "red",
     },
     {
-      id: "balance",
-      title: "Your Current Balance",
-      sum: formatCurrency(balance.toFixed(2)),
+      id: "savings",
+      title: "Net Savings",
+      sum: formatAmount(income - expense, userCurrency),
       icon: Wallet,
-      color: balance >= 0 ? "rust" : "red",
+      color: "blue",
+    },
+    {
+      id: "balance",
+      title: "Current Balance",
+      sum: formatAmount(balance, userCurrency),
+      icon: Wallet,
+      color: "purple",
     },
   ];
 
@@ -152,14 +162,14 @@ export function Dashboard() {
   return (
     <div className="min-h-screen selection:bg-[#4ade80]/30 p-6 space-y-6">
       <DashHeader
-        name="User"
+        name={profile?.name}
         onRefresh={handleRefresh}
         refreshing={refreshing}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryData.map((item) => (
-          <DashSummary key={item.id} {...item} />
+          <DashSummary key={item.id} {...item} currency={userCurrency} />
         ))}
       </div>
 

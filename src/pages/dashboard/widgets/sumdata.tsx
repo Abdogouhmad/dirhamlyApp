@@ -8,7 +8,7 @@ type DashSummaryProps = {
   sum: string;
   percentage?: string;
   icon: LucideIcon;
-  color: "green" | "red" | "rust";
+  color: "green" | "red" | "rust" | "purple" | "blue";
   currency?: string;
 };
 
@@ -16,9 +16,9 @@ export type SummaryItem = {
   id: string;
   title: string;
   sum: string;
-  percentage?: string; // ← now part of the type
+  percentage?: string;
   icon: LucideIcon;
-  color: "green" | "red" | "rust";
+  color: "green" | "red" | "rust" | "purple" | "blue";
 };
 
 export default function DashSummary({
@@ -45,12 +45,22 @@ export default function DashSummary({
       bg: "bg-gold-300/50 dark:bg-gold-800/50 border-gold-300/50 dark:border-gold-800/50",
       badge: "bg-cobalt-400/70 dark:bg-cobalt-800/50 dark:text-gold-300",
     },
+    purple: {
+      icon: "text-violet-600/70 dark:text-violet-500/80",
+      bg: "bg-violet-500/50 dark:bg-violet-800/50 border-violet-500/50 dark:border-violet-800/50",
+      badge: "bg-violet-400/70 dark:bg-violet-800/50 dark:text-violet-400",
+    },
+    blue: {
+      icon: "text-cobalt-600/70 dark:text-cobalt-500/80",
+      bg: "bg-cobalt-500/50 dark:bg-cobalt-800/50 border-cobalt-500/50 dark:border-cobalt-800/50",
+      badge: "bg-cobalt-400/70 dark:bg-cobalt-800/50 dark:text-cobalt-400",
+    },
   };
 
   const s = styles[color];
 
   return (
-    <Card className="relative overflow-hidden border rounded-sm border-cobalt-300/50 hover:border-cobalt-300 transition-all duration-300 group">
+    <Card className="relative overflow-hidden border rounded-2xl border-cobalt-300/50 hover:border-cobalt-300 transition-all duration-300 group">
       <CardHeader className="flex flex-row items-center justify-between pb-3 space-y-0">
         <div
           className={`p-2.5 rounded-xl border transition-transform group-hover:scale-110 ${s.bg}`}
@@ -67,12 +77,12 @@ export default function DashSummary({
         )}
       </CardHeader>
       <CardContent className="space-y-1">
-        <p className="text-sm font-semibold dark:text-neutral-300 text-neutral-700">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] dark:text-neutral-400 text-neutral-500">
           {title}
         </p>
         <div className="flex items-baseline gap-2">
-          <h2 className="text-3xl font-bold tracking-tight">{sum}</h2>
-          <span className="text-xs font-bold dark:text-neutral-300 text-neutral-700 mb-1">
+          <h2 className="text-3xl font-black tracking-tight">{sum}</h2>
+          <span className="text-[10px] font-black dark:text-neutral-500 text-neutral-400 uppercase tracking-widest">
             {currency}
           </span>
         </div>

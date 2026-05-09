@@ -1,10 +1,30 @@
 use crate::db::DiBase;
-use crate::model::{Category, MonthlyBalance, Transaction, TxType};
+use crate::model::{Category, MonthlyBalance, Profile, Transaction, TxType};
 use chrono::NaiveDate;
 use rust_decimal::prelude::ToPrimitive;
 use rust_decimal::Decimal;
 use std::str::FromStr;
 use tauri::State;
+
+#[tauri::command]
+pub fn get_profile(state: State<'_, DiBase>) -> Result<Option<Profile>, String> {
+    state.get_profile().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn set_profile(
+    state: State<'_, DiBase>,
+    name: String,
+    image: Option<String>,
+    currency: String,
+) -> Result<(), String> {
+    let profile = Profile {
+        name,
+        image,
+        currency,
+    };
+    state.upsert_profile(&profile).map_err(|e| e.to_string())
+}
 
 #[tauri::command]
 pub fn add_tx(
@@ -69,6 +89,13 @@ pub fn delete_tx(state: State<'_, DiBase>, id: i64) -> Result<(), String> {
     state
         .delete_transaction(id)
         .map_err(|e| format!("Failed to delete transaction: {}", e))
+}
+
+#[tauri::command]
+pub fn convert_all_tx(state: State<'_, DiBase>, rate: f64) -> Result<(), String> {
+    state
+        .bulk_convert_amounts(rate)
+        .map_err(|e| format!("Bulk conversion failed: {}", e))
 }
 
 #[tauri::command]
