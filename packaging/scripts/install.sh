@@ -3,7 +3,7 @@
 set -e
 
 APP_NAME="dirhamly"
-VERSION="0.3.5"
+VERSION="0.4.0"
 APPIMAGE_URL="https://github.com/Abdogouhmad/dirhamlyApp/releases/download/v$VERSION/${APP_NAME}_${VERSION}_amd64.AppImage"
 BIN_PATH="/usr/local/bin/$APP_NAME"
 DESKTOP_PATH="$HOME/.local/share/applications/$APP_NAME.desktop"
