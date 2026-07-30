@@ -3,7 +3,7 @@
 set -e
 
 APP_NAME="dirhamly"
-DATA_DIR="$HOME/.local/share/com.dirhamly.app"
+DATA_DIR="$HOME/.local/share/dirhamly"
 BIN_PATH="/usr/local/bin/$APP_NAME"
 DESKTOP_PATH="$HOME/.local/share/applications/$APP_NAME.desktop"
 

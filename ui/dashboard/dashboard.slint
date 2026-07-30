@@ -1,0 +1,344 @@
+import { Theme } from "../theme.slint";
+import { DashHeader } from "header.slint";
+import { SummaryCards } from "summary.slint";
+import { MonthlyChart, MonthlyBalanceData } from "monthly_chart.slint";
+import { CategoryPie, CategoryItemData } from "category_pie.slint";
+import { TransactionTable, TransactionRowData } from "table.slint";
+import { Button, LineEdit, ComboBox, ScrollView } from "std-widgets.slint";
+
+export component Dashboard inherits Rectangle {
+    in property <string> user-name: "User";
+    in property <string> currency: "MAD";
+    in property <string> total-income: "0.00";
+    in property <string> total-expense: "0.00";
+    in property <string> net-savings: "0.00";
+    in property <string> current-balance: "0.00";
+
+    in property <[MonthlyBalanceData]> monthly-data: [];
+    in property <float> monthly-max: 1000.0;
+    in property <[CategoryItemData]> category-data: [];
+    in property <[TransactionRowData]> transactions: [];
+
+    // Form modal state
+    in-out property <bool> show-add-modal: false;
+    in-out property <string> new-tx-type: "expense"; // "income" or "expense"
+    in-out property <string> new-amount: "";
+    in-out property <string> new-category: "food";
+    in-out property <string> new-description: "";
+    in-out property <string> new-date: ""; // YYYY-MM-DD
+
+    // Delete confirmation state
+    in-out property <bool> show-delete-modal: false;
+    in-out property <int> delete-target-id: 0;
+
+    // Callbacks
+    callback submit-new-tx(string, string, string, string, string); // (tx_type, amount, category, desc, date)
+    callback confirm-delete-tx(int);
+    callback filter-month-changed(string);
+
+    background: Theme.background;
+
+    VerticalLayout {
+        DashHeader {
+            user-name: root.user-name;
+            currency: root.currency;
+            open-add-tx => {
+                root.show-add-modal = true;
+            }
+        }
+
+        ScrollView {
+            VerticalLayout {
+                padding: Theme.spacing-lg;
+                spacing: Theme.spacing-lg;
+
+                // 1. Summary Cards
+                SummaryCards {
+                    total-income: root.total-income;
+                    total-expense: root.total-expense;
+                    net-savings: root.net-savings;
+                    current-balance: root.current-balance;
+                    currency: root.currency;
+                }
+
+                // 2. Charts Row
+                HorizontalLayout {
+                    spacing: Theme.spacing-lg;
+
+                    MonthlyChart {
+                        months: root.monthly-data;
+                        max-val: root.monthly-max;
+                        currency: root.currency;
+                        horizontal-stretch: 1;
+                    }
+
+                    CategoryPie {
+                        categories: root.category-data;
+                        currency: root.currency;
+                        width: 320px;
+                    }
+                }
+
+                // 3. Transactions Table
+                TransactionTable {
+                    transactions: root.transactions;
+                    currency: root.currency;
+                    request-delete(id) => {
+                        root.delete-target-id = id;
+                        root.show-delete-modal = true;
+                    }
+                    filter-changed(m) => {
+                        root.filter-month-changed(m);
+                    }
+                }
+            }
+        }
+    }
+
+    // Modal Overlay 1: Add Transaction
+    if root.show-add-modal : Rectangle {
+        background: #000000a0;
+
+        TouchArea {
+            // Intercept clicks on backdrop
+        }
+
+        VerticalLayout {
+            alignment: center;
+
+            HorizontalLayout {
+                alignment: center;
+
+                Rectangle {
+                    width: 440px;
+                    background: Theme.surface;
+                    border-radius: Theme.radius-xl;
+                    border-width: 1px;
+                    border-color: Theme.border;
+
+                    VerticalLayout {
+                        padding: Theme.spacing-xl;
+                        spacing: Theme.spacing-lg;
+
+                        // Header
+                        HorizontalLayout {
+                            alignment: space-between;
+
+                            Text {
+                                text: "Add Transaction";
+                                color: Theme.text-primary;
+                                font-size: 18px;
+                                font-weight: Theme.font-weight-bold;
+                            }
+
+                            Button {
+                                text: "✕";
+                                height: 30px;
+                                width: 30px;
+                                clicked => { root.show-add-modal = false; }
+                            }
+                        }
+
+                        // Type Toggle (Segmented control)
+                        Rectangle {
+                            height: 40px;
+                            background: Theme.surface-alt;
+                            border-radius: Theme.radius-md;
+
+                            HorizontalLayout {
+                                spacing: Theme.spacing-xs;
+                                padding: 4px;
+
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                    border-radius: Theme.radius-sm;
+                                    background: root.new-tx-type == "expense" ? Theme.expense : transparent;
+
+                                    Text {
+                                        text: "Expense";
+                                        color: root.new-tx-type == "expense" ? #ffffff : Theme.text-secondary;
+                                        font-size: 13px;
+                                        font-weight: Theme.font-weight-semibold;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.new-tx-type = "expense";
+                                            root.new-category = "food";
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    horizontal-stretch: 1;
+                                    border-radius: Theme.radius-sm;
+                                    background: root.new-tx-type == "income" ? Theme.income : transparent;
+
+                                    Text {
+                                        text: "Income";
+                                        color: root.new-tx-type == "income" ? #ffffff : Theme.text-secondary;
+                                        font-size: 13px;
+                                        font-weight: Theme.font-weight-semibold;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.new-tx-type = "income";
+                                            root.new-category = "salary";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Inputs
+                        VerticalLayout {
+                            spacing: Theme.spacing-md;
+
+                            VerticalLayout {
+                                spacing: Theme.spacing-xs;
+                                Text { text: "Amount (" + root.currency + ")"; color: Theme.text-secondary; font-size: 12px; }
+                                LineEdit {
+                                    text <=> root.new-amount;
+                                    placeholder-text: "0.00";
+                                    height: 40px;
+                                }
+                            }
+
+                            VerticalLayout {
+                                spacing: Theme.spacing-xs;
+                                Text { text: "Category"; color: Theme.text-secondary; font-size: 12px; }
+
+                                LineEdit {
+                                    text <=> root.new-category;
+                                    placeholder-text: root.new-tx-type == "expense" ? "food, rent, health, shopping..." : "salary, freelance, investment...";
+                                    height: 40px;
+                                }
+                            }
+
+                            VerticalLayout {
+                                spacing: Theme.spacing-xs;
+                                Text { text: "Description"; color: Theme.text-secondary; font-size: 12px; }
+                                LineEdit {
+                                    text <=> root.new-description;
+                                    placeholder-text: "Optional note...";
+                                    height: 40px;
+                                }
+                            }
+
+                            VerticalLayout {
+                                spacing: Theme.spacing-xs;
+                                Text { text: "Date (YYYY-MM-DD)"; color: Theme.text-secondary; font-size: 12px; }
+                                LineEdit {
+                                    text <=> root.new-date;
+                                    placeholder-text: "2026-07-30";
+                                    height: 40px;
+                                }
+                            }
+                        }
+
+                        // Actions
+                        HorizontalLayout {
+                            spacing: Theme.spacing-md;
+
+                            Button {
+                                text: "Cancel";
+                                horizontal-stretch: 1;
+                                height: 42px;
+                                clicked => { root.show-add-modal = false; }
+                            }
+
+                            Button {
+                                text: "Save Transaction";
+                                primary: true;
+                                horizontal-stretch: 1;
+                                height: 42px;
+                                enabled: root.new-amount != "" && root.new-date != "";
+                                clicked => {
+                                    root.submit-new-tx(
+                                        root.new-tx-type,
+                                        root.new-amount,
+                                        root.new-category,
+                                        root.new-description,
+                                        root.new-date
+                                    );
+                                    root.show-add-modal = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Modal Overlay 2: Delete Confirmation
+    if root.show-delete-modal : Rectangle {
+        background: #000000a0;
+
+        TouchArea {}
+
+        VerticalLayout {
+            alignment: center;
+
+            HorizontalLayout {
+                alignment: center;
+
+                Rectangle {
+                    width: 380px;
+                    background: Theme.surface;
+                    border-radius: Theme.radius-xl;
+                    border-width: 1px;
+                    border-color: Theme.border;
+
+                    VerticalLayout {
+                        padding: Theme.spacing-xl;
+                        spacing: Theme.spacing-lg;
+
+                        Text {
+                            text: "Delete Transaction?";
+                            color: Theme.text-primary;
+                            font-size: 18px;
+                            font-weight: Theme.font-weight-bold;
+                            horizontal-alignment: center;
+                        }
+
+                        Text {
+                            text: "Are you sure you want to delete this transaction? This operation cannot be undone.";
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+
+                        HorizontalLayout {
+                            spacing: Theme.spacing-md;
+
+                            Button {
+                                text: "Cancel";
+                                horizontal-stretch: 1;
+                                height: 40px;
+                                clicked => { root.show-delete-modal = false; }
+                            }
+
+                            Button {
+                                text: "Delete";
+                                primary: true;
+                                horizontal-stretch: 1;
+                                height: 40px;
+                                clicked => {
+                                    root.confirm-delete-tx(root.delete-target-id);
+                                    root.show-delete-modal = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

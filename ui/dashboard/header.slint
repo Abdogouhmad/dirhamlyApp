@@ -1,0 +1,73 @@
+import { Theme } from "../theme.slint";
+import { Button } from "std-widgets.slint";
+
+export component DashHeader inherits Rectangle {
+    in property <string> user-name: "User";
+    in property <string> currency: "MAD";
+    callback open-add-tx();
+
+    height: 72px;
+    background: transparent;
+
+    HorizontalLayout {
+        padding-left: Theme.spacing-lg;
+        padding-right: Theme.spacing-lg;
+        alignment: space-between;
+
+        // Left Side: Greeting & Subtitle
+        VerticalLayout {
+            alignment: center;
+            spacing: 2px;
+
+            Text {
+                text: "Good day, " + root.user-name + " 👋";
+                color: Theme.text-primary;
+                font-size: 20px;
+                font-weight: Theme.font-weight-bold;
+            }
+
+            Text {
+                text: "Here's what's happening with your finances today.";
+                color: Theme.text-secondary;
+                font-size: 13px;
+            }
+        }
+
+        // Right Side: Quick Action & Profile Pill
+        HorizontalLayout {
+            alignment: center;
+            spacing: Theme.spacing-md;
+
+            // Currency Badge
+            Rectangle {
+                height: 36px;
+                background: Theme.surface-alt;
+                border-radius: Theme.radius-md;
+                border-width: 1px;
+                border-color: Theme.border;
+
+                HorizontalLayout {
+                    padding-left: Theme.spacing-md;
+                    padding-right: Theme.spacing-md;
+                    alignment: center;
+
+                    Text {
+                        text: "Currency: " + root.currency;
+                        color: Theme.text-secondary;
+                        font-size: 13px;
+                        font-weight: Theme.font-weight-medium;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Add Transaction Button
+            Button {
+                text: "+ Add Transaction";
+                primary: true;
+                height: 38px;
+                clicked => { root.open-add-tx(); }
+            }
+        }
+    }
+}

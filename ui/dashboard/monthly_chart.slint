@@ -1,0 +1,123 @@
+import { Theme } from "../theme.slint";
+
+export struct MonthlyBalanceData {
+    month: string,
+    income: float,
+    expense: float,
+}
+
+export component MonthlyChart inherits Rectangle {
+    in property <[MonthlyBalanceData]> months: [];
+    in property <float> max-val: 1000.0;
+    in property <string> currency: "MAD";
+
+    background: Theme.surface;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+
+    VerticalLayout {
+        padding: Theme.spacing-lg;
+        spacing: Theme.spacing-md;
+
+        // Title & Legend Header
+        HorizontalLayout {
+            alignment: space-between;
+
+            Text {
+                text: "Monthly Performance";
+                color: Theme.text-primary;
+                font-size: 16px;
+                font-weight: Theme.font-weight-bold;
+            }
+
+            HorizontalLayout {
+                spacing: Theme.spacing-md;
+
+                HorizontalLayout {
+                    spacing: Theme.spacing-xs;
+                    alignment: center;
+
+                    Rectangle {
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 3px;
+                        background: Theme.income;
+                    }
+                    Text {
+                        text: "Income";
+                        color: Theme.text-secondary;
+                        font-size: 12px;
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: Theme.spacing-xs;
+                    alignment: center;
+
+                    Rectangle {
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 3px;
+                        background: Theme.expense;
+                    }
+                    Text {
+                        text: "Expense";
+                        color: Theme.text-secondary;
+                        font-size: 12px;
+                    }
+                }
+            }
+        }
+
+        // Chart Bars Area
+        Rectangle {
+            height: 160px;
+            background: Theme.surface-alt;
+            border-radius: Theme.radius-md;
+
+            HorizontalLayout {
+                padding-left: Theme.spacing-sm;
+                padding-right: Theme.spacing-sm;
+                padding-top: Theme.spacing-md;
+                padding-bottom: Theme.spacing-xs;
+                spacing: 6px;
+
+                for item in root.months : VerticalLayout {
+                    alignment: end;
+                    spacing: 4px;
+
+                    // Bars Container
+                    HorizontalLayout {
+                        alignment: center;
+                        spacing: 2px;
+
+                        // Income Bar
+                        Rectangle {
+                            width: 10px;
+                            height: max(4px, (item.income / max(1.0, root.max-val)) * 120px);
+                            background: Theme.income;
+                            border-radius: 3px;
+                        }
+
+                        // Expense Bar
+                        Rectangle {
+                            width: 10px;
+                            height: max(4px, (item.expense / max(1.0, root.max-val)) * 120px);
+                            background: Theme.expense;
+                            border-radius: 3px;
+                        }
+                    }
+
+                    // Month Label (Short format, e.g. "01", "02" or month name)
+                    Text {
+                        text: item.month;
+                        color: Theme.text-muted;
+                        font-size: 10px;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}

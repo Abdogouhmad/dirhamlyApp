@@ -1,0 +1,119 @@
+import { Theme } from "theme.slint";
+import { Button, LineEdit } from "std-widgets.slint";
+
+export component Onboarding inherits Rectangle {
+    in-out property <string> name-text: "";
+    in-out property <string> currency-text: "MAD";
+    callback submit-profile(string, string, string); // (name, image, currency)
+
+    background: Theme.background;
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: 460px;
+                background: Theme.surface;
+                border-radius: Theme.radius-xl;
+                border-width: 1px;
+                border-color: Theme.border;
+
+                VerticalLayout {
+                    padding: Theme.spacing-xl;
+                    spacing: Theme.spacing-lg;
+
+                    // Logo and Title Area
+                    VerticalLayout {
+                        spacing: Theme.spacing-xs;
+                        alignment: center;
+
+                        // Logo Graphic
+                        HorizontalLayout {
+                            alignment: center;
+                            Rectangle {
+                                width: 56px;
+                                height: 56px;
+                                border-radius: 16px;
+                                background: Theme.accent;
+
+                                Text {
+                                    text: "D";
+                                    color: #ffffff;
+                                    font-size: 28px;
+                                    font-weight: Theme.font-weight-bold;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "Welcome to Dirhamly";
+                            color: Theme.text-primary;
+                            font-size: 24px;
+                            font-weight: Theme.font-weight-bold;
+                            horizontal-alignment: center;
+                        }
+
+                        Text {
+                            text: "Your personal financial tracking operating system.";
+                            color: Theme.text-secondary;
+                            font-size: 14px;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+                    }
+
+                    // Form Fields
+                    VerticalLayout {
+                        spacing: Theme.spacing-md;
+
+                        VerticalLayout {
+                            spacing: Theme.spacing-xs;
+                            Text {
+                                text: "Your Name";
+                                color: Theme.text-secondary;
+                                font-size: 13px;
+                                font-weight: Theme.font-weight-medium;
+                            }
+                            LineEdit {
+                                text <=> name-text;
+                                placeholder-text: "e.g. John Deo";
+                                height: 42px;
+                            }
+                        }
+
+                        VerticalLayout {
+                            spacing: Theme.spacing-xs;
+                            Text {
+                                text: "Default Currency";
+                                color: Theme.text-secondary;
+                                font-size: 13px;
+                                font-weight: Theme.font-weight-medium;
+                            }
+                            LineEdit {
+                                text <=> currency-text;
+                                placeholder-text: "MAD, USD, EUR...";
+                                height: 42px;
+                            }
+                        }
+                    }
+
+                    // Action Button
+                    Button {
+                        text: "Get Started";
+                        primary: true;
+                        height: 46px;
+                        enabled: name-text != "";
+                        clicked => {
+                            root.submit-profile(root.name-text, "", root.currency-text);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

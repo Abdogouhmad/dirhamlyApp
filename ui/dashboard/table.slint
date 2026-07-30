@@ -1,0 +1,202 @@
+import { Theme } from "../theme.slint";
+import { Button, ListView, LineEdit } from "std-widgets.slint";
+
+export struct TransactionRowData {
+    id: int,
+    tx_type: string,
+    amount_str: string,
+    category: string,
+    description: string,
+    date: string,
+    is_income: bool,
+}
+
+export component TransactionTable inherits Rectangle {
+    in property <[TransactionRowData]> transactions: [];
+    in property <string> currency: "MAD";
+    in-out property <string> filter-month: ""; // YYYY-MM
+    callback request-delete(int); // id
+    callback filter-changed(string);
+
+    background: Theme.surface;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+
+    VerticalLayout {
+        padding: Theme.spacing-lg;
+        spacing: Theme.spacing-md;
+
+        // Header Row with Title and Month Filter
+        HorizontalLayout {
+            alignment: space-between;
+
+            VerticalLayout {
+                alignment: center;
+                Text {
+                    text: "Recent Transactions";
+                    color: Theme.text-primary;
+                    font-size: 16px;
+                    font-weight: Theme.font-weight-bold;
+                }
+            }
+
+            HorizontalLayout {
+                spacing: Theme.spacing-sm;
+                alignment: center;
+
+                Text {
+                    text: "Filter Month:";
+                    color: Theme.text-secondary;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+
+                LineEdit {
+                    text <=> filter-month;
+                    placeholder-text: "YYYY-MM (e.g. 2026-07)";
+                    width: 160px;
+                    height: 34px;
+                    edited => {
+                        root.filter-changed(root.filter-month);
+                    }
+                }
+            }
+        }
+
+        // Column Headers
+        Rectangle {
+            height: 32px;
+            background: Theme.surface-alt;
+            border-radius: Theme.radius-sm;
+
+            HorizontalLayout {
+                padding-left: Theme.spacing-md;
+                padding-right: Theme.spacing-md;
+                spacing: Theme.spacing-md;
+
+                Text { text: "Date"; width: 100px; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; }
+                Text { text: "Type"; width: 80px; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; }
+                Text { text: "Category"; width: 120px; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; }
+                Text { text: "Description"; horizontal-stretch: 1; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; }
+                Text { text: "Amount"; width: 110px; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; horizontal-alignment: right; vertical-alignment: center; }
+                Text { text: "Action"; width: 60px; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; horizontal-alignment: center; vertical-alignment: center; }
+            }
+        }
+
+        // Empty State
+        if transactions.length == 0 : VerticalLayout {
+            alignment: center;
+            height: 200px;
+            Text {
+                text: "No transactions found.";
+                color: Theme.text-muted;
+                font-size: 14px;
+                horizontal-alignment: center;
+            }
+        }
+
+        // Transactions List
+        if transactions.length > 0 : ListView {
+            height: 320px;
+
+            for item in root.transactions : VerticalLayout {
+                spacing: 0px;
+
+                Rectangle {
+                    height: 47px;
+
+                    HorizontalLayout {
+                        padding-left: Theme.spacing-md;
+                        padding-right: Theme.spacing-md;
+                        spacing: Theme.spacing-md;
+
+                        // Date
+                        Text {
+                            text: item.date;
+                            width: 100px;
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            vertical-alignment: center;
+                        }
+
+                        // Type Badge
+                        Rectangle {
+                            width: 80px;
+                            height: 26px;
+                            border-radius: 13px;
+                            background: item.is_income ? Theme.income-bg : Theme.expense-bg;
+
+                            Text {
+                                text: item.tx_type;
+                                color: item.is_income ? Theme.income : Theme.expense;
+                                font-size: 11px;
+                                font-weight: Theme.font-weight-semibold;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        // Category Pill
+                        Rectangle {
+                            width: 120px;
+                            height: 26px;
+                            border-radius: Theme.radius-sm;
+                            background: Theme.surface-alt;
+                            border-width: 1px;
+                            border-color: Theme.border;
+
+                            Text {
+                                text: item.category;
+                                color: Theme.text-primary;
+                                font-size: 12px;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        // Description
+                        Text {
+                            text: item.description != "" ? item.description : "—";
+                            horizontal-stretch: 1;
+                            color: Theme.text-primary;
+                            font-size: 13px;
+                            vertical-alignment: center;
+                            overflow: elide;
+                        }
+
+                        // Amount
+                        Text {
+                            text: (item.is_income ? "+" : "-") + item.amount_str + " " + root.currency;
+                            width: 110px;
+                            color: item.is_income ? Theme.income : Theme.expense;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-bold;
+                            horizontal-alignment: right;
+                            vertical-alignment: center;
+                        }
+
+                        // Delete Button
+                        HorizontalLayout {
+                            width: 60px;
+                            alignment: center;
+
+                            Button {
+                                text: "✕";
+                                height: 28px;
+                                width: 28px;
+                                clicked => { root.request-delete(item.id); }
+                            }
+                        }
+                    }
+                }
+
+                // Divider Line
+                Rectangle {
+                    height: 1px;
+                    background: Theme.border;
+                }
+            }
+        }
+    }
+}

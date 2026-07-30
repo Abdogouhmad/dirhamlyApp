@@ -1,0 +1,83 @@
+import { Theme } from "../theme.slint";
+
+export struct CategoryItemData {
+    category: string,
+    amount: float,
+    amount_str: string,
+    percentage: float,
+}
+
+export component CategoryPie inherits Rectangle {
+    in property <[CategoryItemData]> categories: [];
+    in property <string> currency: "MAD";
+
+    background: Theme.surface;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+
+    VerticalLayout {
+        padding: Theme.spacing-lg;
+        spacing: Theme.spacing-md;
+
+        Text {
+            text: "Expenses by Category";
+            color: Theme.text-primary;
+            font-size: 16px;
+            font-weight: Theme.font-weight-bold;
+        }
+
+        if categories.length == 0 : VerticalLayout {
+            alignment: center;
+            height: 160px;
+            Text {
+                text: "No expenses recorded yet.";
+                color: Theme.text-muted;
+                font-size: 13px;
+                horizontal-alignment: center;
+            }
+        }
+
+        if categories.length > 0 : VerticalLayout {
+            spacing: Theme.spacing-sm;
+
+            for cat in root.categories : VerticalLayout {
+                spacing: 2px;
+
+                HorizontalLayout {
+                    alignment: space-between;
+
+                    Text {
+                        text: cat.category;
+                        color: Theme.text-primary;
+                        font-size: 13px;
+                        font-weight: Theme.font-weight-medium;
+                    }
+
+                    Text {
+                        text: cat.amount_str + " " + root.currency;
+                        color: Theme.text-secondary;
+                        font-size: 13px;
+                    }
+                }
+
+                // Progress Bar Container
+                Rectangle {
+                    height: 6px;
+                    background: Theme.surface-alt;
+                    border-radius: 3px;
+
+                    HorizontalLayout {
+                        alignment: start;
+                        Rectangle {
+                            width: max(2px, cat.percentage * parent.width);
+                            height: 6px;
+                            background: Theme.accent;
+                            border-radius: 3px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
