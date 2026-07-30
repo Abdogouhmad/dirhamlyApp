@@ -147,11 +147,23 @@ pkg-install: pkg
 
 # build Windows x86_64 binary (requires mingw-w64)
 # Install: yay -S mingw-w64-toolchain
+# Features: no console window, embedded .ico icon
 build-win: _win-deps
     rustup target add x86_64-pc-windows-gnu
     cargo build --release --target x86_64-pc-windows-gnu
     cp target/x86_64-pc-windows-gnu/release/{{project}}.exe \
        target/{{project}}-{{version}}-win64.exe
+    @echo "Binary: target/{{project}}-{{version}}-win64.exe"
+
+# build Windows installer via NSIS (requires makensis)
+# Install: sudo pacman -S nsis
+build-win-installer: build-win
+    cp target/{{project}}-{{version}}-win64.exe \
+       target/{{project}}-{{version}}-win64/{{project}}.exe
+    makensis packaging/windows/installer.nsi
+    mv Dirhamly-*-Setup.exe \
+       target/{{project}}-{{version}}-win64/
+    @echo "Installer: target/{{project}}-{{version}}-win64/Dirhamly-*-Setup.exe"
 
 _win-deps:
     @which x86_64-w64-mingw32-gcc >/dev/null 2>&1 || { \
