@@ -20,7 +20,6 @@ export component MonthlyChart inherits Rectangle {
         padding: Theme.spacing-lg;
         spacing: Theme.spacing-md;
 
-        // Title & Legend Header
         HorizontalLayout {
             alignment: space-between;
 
@@ -70,51 +69,73 @@ export component MonthlyChart inherits Rectangle {
             }
         }
 
-        // Chart Bars Area
         Rectangle {
-            height: 160px;
+            height: 180px;
             background: Theme.surface-alt;
             border-radius: Theme.radius-md;
 
-            HorizontalLayout {
-                padding-left: Theme.spacing-sm;
-                padding-right: Theme.spacing-sm;
-                padding-top: Theme.spacing-md;
-                padding-bottom: Theme.spacing-xs;
-                spacing: 6px;
+            VerticalLayout {
+                padding: Theme.spacing-md;
 
-                for item in root.months : VerticalLayout {
-                    alignment: end;
-                    spacing: 4px;
+                // Y-axis reference lines + bars
+                Rectangle {
+                    horizontal-stretch: 1;
+                    height: 140px;
 
-                    // Bars Container
-                    HorizontalLayout {
-                        alignment: center;
-                        spacing: 2px;
-
-                        // Income Bar
-                        Rectangle {
-                            width: 10px;
-                            height: max(4px, (item.income / max(1.0, root.max-val)) * 120px);
-                            background: Theme.income;
-                            border-radius: 3px;
-                        }
-
-                        // Expense Bar
-                        Rectangle {
-                            width: 10px;
-                            height: max(4px, (item.expense / max(1.0, root.max-val)) * 120px);
-                            background: Theme.expense;
-                            border-radius: 3px;
-                        }
+                    // Horizontal grid lines
+                    VerticalLayout {
+                        spacing: 0px;
+                        Rectangle { height: 1px; background: Theme.border; }
+                        Rectangle { height: 34px; }
+                        Rectangle { height: 1px; background: Theme.border; }
+                        Rectangle { height: 34px; }
+                        Rectangle { height: 1px; background: Theme.border; }
+                        Rectangle { height: 34px; }
+                        Rectangle { height: 1px; background: Theme.border; }
                     }
 
-                    // Month Label (Short format, e.g. "01", "02" or month name)
-                    Text {
-                        text: item.month;
-                        color: Theme.text-muted;
-                        font-size: 10px;
-                        horizontal-alignment: center;
+                    // Bars
+                    HorizontalLayout {
+                padding-left: Theme.spacing-sm;
+                        padding-right: Theme.spacing-sm;
+                padding-top: Theme.spacing-xs;
+                        spacing: 8px;
+
+                        for item in root.months : VerticalLayout {
+                            alignment: end;
+                            spacing: 2px;
+
+                            HorizontalLayout {
+                                alignment: center;
+                                spacing: 3px;
+
+                                Rectangle {
+                                    width: 14px;
+                                    height: max(2px, (item.income / max(1.0, root.max-val)) * 110px);
+                                    background: Theme.income;
+                                    border-radius: 4px;
+                                    border-bottom-left-radius: 0px;
+                                    border-bottom-right-radius: 0px;
+                                }
+
+                                Rectangle {
+                                    width: 14px;
+                                    height: max(2px, (item.expense / max(1.0, root.max-val)) * 110px);
+                                    background: Theme.expense;
+                                    border-radius: 4px;
+                                    border-bottom-left-radius: 0px;
+                                    border-bottom-right-radius: 0px;
+                                }
+                            }
+
+                            Text {
+                                text: item.month;
+                                color: Theme.text-muted;
+                                font-size: 10px;
+                                horizontal-alignment: center;
+                                height: 14px;
+                            }
+                        }
                     }
                 }
             }

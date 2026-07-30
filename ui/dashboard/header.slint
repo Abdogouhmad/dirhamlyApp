@@ -5,6 +5,7 @@ export component DashHeader inherits Rectangle {
     in property <string> user-name: "User";
     in property <string> currency: "MAD";
     in property <string> avatar-initials: "U";
+    in property <image> profile-image-data;
     callback open-add-tx();
     callback open-settings();
 
@@ -16,7 +17,6 @@ export component DashHeader inherits Rectangle {
         padding-right: Theme.spacing-lg;
         alignment: space-between;
 
-        // Left Side: Greeting & Subtitle
         VerticalLayout {
             alignment: center;
             spacing: 2px;
@@ -35,12 +35,10 @@ export component DashHeader inherits Rectangle {
             }
         }
 
-        // Right Side: Add Tx Button + Avatar
         HorizontalLayout {
             alignment: center;
             spacing: Theme.spacing-md;
 
-            // Add Transaction Button
             Button {
                 text: "+ Add Transaction";
                 primary: true;
@@ -48,16 +46,25 @@ export component DashHeader inherits Rectangle {
                 clicked => { root.open-add-tx(); }
             }
 
-            // Avatar — clickable to open settings
             Rectangle {
                 width: 40px;
                 height: 40px;
                 border-radius: 20px;
-                background: Theme.accent;
+                background: root.profile-image-data.width > 0 ? transparent : Theme.accent;
                 border-width: 2px;
-                border-color: Theme.accent-hover;
+                border-color: root.profile-image-data.width > 0 ? Theme.accent-hover : Theme.accent-hover;
 
-                Text {
+                if root.profile-image-data.width > 0 : Rectangle {
+                    width: 40px; height: 40px;
+                    border-radius: 20px;
+                    clip: true;
+                    Image {
+                        source: root.profile-image-data;
+                        width: 40px; height: 40px;
+                    }
+                }
+
+                if !(root.profile-image-data.width > 0) : Text {
                     text: root.avatar-initials;
                     color: #ffffff;
                     font-size: 18px;

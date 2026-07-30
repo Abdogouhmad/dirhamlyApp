@@ -22,6 +22,7 @@ rusty-money = "0.5"
 strum = { version = "0.27", features = ["derive"] }
 strum_macros = "0.27"
 dirs = "6.0"
+rfd = "0.17"
 
 [profile.release]
 opt-level = "s"

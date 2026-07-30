@@ -8,6 +8,7 @@ import { TransactionRowData } from "dashboard/table.slint";
 
 export component AppWindow inherits Window {
     title: "Dirhamly — Finance OS";
+    icon: @image-url("../packaging/icons/icon.png");
     preferred-width: 1100px;
     preferred-height: 760px;
     min-width: 900px;
@@ -36,10 +37,15 @@ export component AppWindow inherits Window {
     // Settings
     in-out property <bool> show-settings: false;
 
+    // Onboarding PFP
+    in-out property <string> profile-image-path: "";
+    in property <image> profile-image-data;
+
     // Callbacks to Rust
     callback save-profile(string, string, string); // (name, image, currency)
-    callback update-settings(string, string); // (name, currency)
+    callback update-settings(string, string, string); // (name, currency, image_path)
     callback reset-profile();
+    callback pick-profile-image();
     callback add-transaction(string, string, string, string, string); // (tx_type, amount, category, desc, date)
     callback delete-transaction(int); // id
     callback filter-transactions(string); // year-month filter
@@ -49,6 +55,15 @@ export component AppWindow inherits Window {
         padding: 12px;
 
         if active-page == 0 : Onboarding {
+            name-text: root.user-name;
+            currency-text: root.currency;
+            profile-image-path: root.profile-image-path;
+            profile-image-data: root.profile-image-data;
+
+            pick-profile-image => {
+                root.pick-profile-image();
+            }
+
             submit-profile(name, img, curr) => {
                 root.save-profile(name, img, curr);
             }
@@ -60,12 +75,12 @@ export component AppWindow inherits Window {
             total-income: root.total-income;
             total-expense: root.total-expense;
             net-savings: root.net-savings;
-            current-balance: root.current-balance;
             monthly-data: root.monthly-data;
             monthly-max: root.monthly-max;
             category-data: root.category-data;
             transactions: root.transactions;
             avatar-initials: root.avatar-initials;
+            profile-image-data: root.profile-image-data;
 
             open-settings => {
                 root.show-settings = true;
@@ -88,9 +103,15 @@ export component AppWindow inherits Window {
         user-name: root.user-name;
         currency: root.currency;
         avatar-initials: root.avatar-initials;
+        profile-image-path: root.profile-image-path;
+        profile-image-data: root.profile-image-data;
 
-        save-settings(name, curr) => {
-            root.update-settings(name, curr);
+        pick-profile-image => {
+            root.pick-profile-image();
+        }
+
+        save-settings(name, curr, img) => {
+            root.update-settings(name, curr, img);
         }
         reset-profile => {
             root.reset-profile();

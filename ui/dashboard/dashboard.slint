@@ -12,8 +12,8 @@ export component Dashboard inherits Rectangle {
     in property <string> total-income: "0.00";
     in property <string> total-expense: "0.00";
     in property <string> net-savings: "0.00";
-    in property <string> current-balance: "0.00";
     in property <string> avatar-initials: "U";
+    in property <image> profile-image-data;
 
     in property <[MonthlyBalanceData]> monthly-data: [];
     in property <float> monthly-max: 1000.0;
@@ -54,6 +54,7 @@ export component Dashboard inherits Rectangle {
             user-name: root.user-name;
             currency: root.currency;
             avatar-initials: root.avatar-initials;
+            profile-image-data: root.profile-image-data;
 
             open-add-tx => {
                 root.show-add-modal = true;
@@ -72,7 +73,6 @@ export component Dashboard inherits Rectangle {
                     total-income: root.total-income;
                     total-expense: root.total-expense;
                     net-savings: root.net-savings;
-                    current-balance: root.current-balance;
                     currency: root.currency;
                 }
 

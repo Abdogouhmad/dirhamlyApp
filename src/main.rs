@@ -10,14 +10,38 @@ use rust_decimal::Decimal;
 use rusty_money::{iso, Money};
 use slint::{ComponentHandle, ModelRc, VecModel};
 use std::collections::HashMap;
+use std::path::Path;
 
 slint::include_modules!();
 
+fn parse_currency_code(input: &str) -> &str {
+    input.split(" - ").next().unwrap_or(input).trim()
+}
+
 fn format_money(amount: &Decimal, currency_code: &str) -> String {
-    let currency = match currency_code {
+    let code = parse_currency_code(currency_code);
+    let currency = match code {
         "USD" => iso::USD,
         "EUR" => iso::EUR,
         "GBP" => iso::GBP,
+        "JPY" => iso::JPY,
+        "CAD" => iso::CAD,
+        "AUD" => iso::AUD,
+        "CHF" => iso::CHF,
+        "CNY" => iso::CNY,
+        "INR" => iso::INR,
+        "AED" => iso::AED,
+        "SAR" => iso::SAR,
+        "TRY" => iso::TRY,
+        "SEK" => iso::SEK,
+        "NOK" => iso::NOK,
+        "DKK" => iso::DKK,
+        "PLN" => iso::PLN,
+        "BRL" => iso::BRL,
+        "MXN" => iso::MXN,
+        "ZAR" => iso::ZAR,
+        "NGN" => iso::NGN,
+        "EGP" => iso::EGP,
         "MAD" => iso::MAD,
         _ => iso::MAD,
     };
@@ -32,8 +56,16 @@ fn get_avatar_initials(name: &str) -> String {
         .unwrap_or_else(|| "U".to_string())
 }
 
+fn load_profile_image(window: &AppWindow, path_str: &str) {
+    if !path_str.is_empty() {
+        if let Ok(img) = slint::Image::load_from_path(Path::new(path_str)) {
+            window.set_profile_image_path(path_str.into());
+            window.set_profile_image_data(img);
+        }
+    }
+}
+
 fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>) {
-    // 1. Check Profile
     let profile = match commands::get_profile(db) {
         Ok(p) => p,
         Err(e) => {
@@ -45,14 +77,16 @@ fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>
     if let Some(ref p) = profile {
         window.set_user_name(p.name.as_str().into());
         window.set_avatar_initials(get_avatar_initials(&p.name).into());
-        window.set_currency(p.currency.as_str().into());
-        window.set_active_page(1); // Dashboard
+        window.set_currency(parse_currency_code(&p.currency).into());
+        if let Some(ref img_path) = p.image {
+            load_profile_image(window, img_path);
+        }
+        window.set_active_page(1);
     } else {
-        window.set_active_page(0); // Onboarding
+        window.set_active_page(0);
         return;
     }
 
-    // 2. Fetch Transactions (filtered by month if specified, else all)
     let tx_list = match filter_month {
         Some(m) if !m.is_empty() => commands::get_by_month(db, m.to_string()).unwrap_or_default(),
         _ => commands::get_all(db).unwrap_or_default(),
@@ -88,7 +122,6 @@ fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>
 
     window.set_transactions(ModelRc::new(VecModel::from(row_models)));
 
-    // 3. Balance Metrics
     let balance_f64 = commands::get_balance(db).unwrap_or(0.0);
     let net_savings_dec = total_income_dec - total_expense_dec;
 
@@ -102,7 +135,6 @@ fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>
     let balance_dec = Decimal::try_from(balance_f64).unwrap_or(Decimal::ZERO);
     window.set_current_balance(format_money(&balance_dec, currency_code).into());
 
-    // 4. Monthly Chart Data for current year
     let current_year = chrono::Local::now().year();
     let monthly_balances = commands::get_monthly_balance(db, current_year).unwrap_or_default();
 
@@ -135,7 +167,6 @@ fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>
     window.set_monthly_data(ModelRc::new(VecModel::from(monthly_models)));
     window.set_monthly_max(max_val_f64 as f32);
 
-    // 5. Category Breakdown Data
     let total_expense_f64 = total_expense_dec.to_f64().unwrap_or(0.0);
     let mut cat_models: Vec<CategoryItemData> = Vec::new();
 
@@ -162,7 +193,6 @@ fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>
 }
 
 fn main() -> anyhow::Result<()> {
-    // 1. App Data directory setup
     let data_dir = dirs::data_dir()
         .ok_or_else(|| anyhow::anyhow!("Could not locate system data directory"))?
         .join("dirhamly");
@@ -173,26 +203,23 @@ fn main() -> anyhow::Result<()> {
     let db = DiBase::new(&db_path)?;
     db.initialize()?;
 
-    // 2. Instantiate Slint App Window
     let window = AppWindow::new()?;
 
-    // Initial state populate
     refresh_app_state(&window, &db, None);
-
-    // 3. Register Callbacks
 
     // Save profile (from onboarding)
     let db_clone1 = db.clone();
     let window_weak1 = window.as_weak();
-    window.on_save_profile(move |name, _img, currency| {
+    window.on_save_profile(move |name, img_path, currency| {
         let name_str = name.to_string();
-        let curr_str = if currency.is_empty() {
-            "MAD".to_string()
+        let img_str = if img_path.is_empty() {
+            None
         } else {
-            currency.to_string()
+            Some(img_path.to_string())
         };
+        let curr_str = parse_currency_code(&currency).to_string();
 
-        if let Err(e) = commands::set_profile(&db_clone1, name_str, None, curr_str) {
+        if let Err(e) = commands::set_profile(&db_clone1, name_str, img_str, curr_str) {
             eprintln!("Failed to save profile: {}", e);
         }
 
@@ -201,18 +228,19 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
-    // Update settings (from settings dialog)
+    // Update settings (from settings dialog) — receives (name, currency, image_path)
     let db_clone_settings = db.clone();
     let window_weak_settings = window.as_weak();
-    window.on_update_settings(move |name, currency| {
+    window.on_update_settings(move |name, currency, img_path| {
         let name_str = name.to_string();
-        let curr_str = if currency.is_empty() {
-            "MAD".to_string()
+        let curr_str = parse_currency_code(&currency).to_string();
+        let img_str = if img_path.is_empty() {
+            None
         } else {
-            currency.to_string()
+            Some(img_path.to_string())
         };
 
-        if let Err(e) = commands::set_profile(&db_clone_settings, name_str, None, curr_str) {
+        if let Err(e) = commands::set_profile(&db_clone_settings, name_str, img_str, curr_str) {
             eprintln!("Failed to update settings: {}", e);
         }
 
@@ -232,6 +260,22 @@ fn main() -> anyhow::Result<()> {
         if let Some(win) = window_weak_reset.upgrade() {
             win.set_show_settings(false);
             refresh_app_state(&win, &db_clone_reset, None);
+        }
+    });
+
+    // Pick profile image (file dialog)
+    let window_weak_pfp = window.as_weak();
+    window.on_pick_profile_image(move || {
+        if let Some(win) = window_weak_pfp.upgrade() {
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter("Images", &["png", "jpg", "jpeg", "webp", "bmp", "gif"])
+                .pick_file()
+            {
+                if let Ok(img) = slint::Image::load_from_path(&path) {
+                    win.set_profile_image_path(path.to_string_lossy().as_ref().into());
+                    win.set_profile_image_data(img);
+                }
+            }
         }
     });
 
@@ -284,7 +328,6 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
-    // 4. Run App Loop
     window.run()?;
 
     Ok(())

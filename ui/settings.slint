@@ -1,12 +1,15 @@
 import { Theme } from "theme.slint";
-import { Button, LineEdit } from "std-widgets.slint";
+import { Button, LineEdit, ComboBox } from "std-widgets.slint";
 
 export component SettingsDialog inherits Rectangle {
     in-out property <string> user-name: "";
     in-out property <string> currency: "MAD";
     in property <string> avatar-initials: "U";
+    in-out property <string> profile-image-path: "";
+    in property <image> profile-image-data;
 
-    callback save-settings(string, string);
+    callback save-settings(string, string, string); // (name, currency, image_path)
+    callback pick-profile-image();
     callback reset-profile();
     callback close-settings();
 
@@ -23,7 +26,7 @@ export component SettingsDialog inherits Rectangle {
             alignment: center;
 
             Rectangle {
-                width: 400px;
+                width: 420px;
                 background: Theme.surface;
                 border-radius: Theme.radius-xl;
                 border-width: 1px;
@@ -64,18 +67,33 @@ export component SettingsDialog inherits Rectangle {
                         }
                     }
 
-                    HorizontalLayout {
+                    // PFP Avatar — clickable to change
+                    VerticalLayout {
                         alignment: center;
+                        spacing: Theme.spacing-sm;
 
                         Rectangle {
-                            width: 80px;
-                            height: 80px;
-                            border-radius: 40px;
-                            background: Theme.accent;
+                            width: 88px;
+                            height: 88px;
+                            border-radius: 44px;
+                            background: root.profile-image-path != "" ? Theme.surface : Theme.accent;
                             border-width: 2px;
-                            border-color: Theme.accent;
+                            border-color: root.profile-image-path != "" ? Theme.accent-hover : Theme.accent;
 
-                            Text {
+                            if root.profile-image-path != "" : Rectangle {
+                                width: 84px;
+                                height: 84px;
+                                border-radius: 42px;
+                                clip: true;
+
+                                Image {
+                                    source: root.profile-image-data;
+                                    width: 84px;
+                                    height: 84px;
+                                }
+                            }
+
+                            if root.profile-image-path == "" : Text {
                                 text: root.avatar-initials;
                                 color: #ffffff;
                                 font-size: 36px;
@@ -83,6 +101,17 @@ export component SettingsDialog inherits Rectangle {
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
                             }
+
+                            TouchArea {
+                                clicked => { root.pick-profile-image(); }
+                            }
+                        }
+
+                        Text {
+                            text: "Tap to change photo";
+                            color: Theme.text-muted;
+                            font-size: 11px;
+                            horizontal-alignment: center;
                         }
                     }
 
@@ -113,9 +142,9 @@ export component SettingsDialog inherits Rectangle {
                             font-weight: Theme.font-weight-medium;
                         }
 
-                        LineEdit {
-                            text <=> root.currency;
-                            placeholder-text: "MAD, USD, EUR...";
+                        ComboBox {
+                            model: ["MAD - Moroccan Dirham", "USD - US Dollar", "EUR - Euro", "GBP - British Pound", "JPY - Japanese Yen", "CAD - Canadian Dollar", "AUD - Australian Dollar", "CHF - Swiss Franc", "CNY - Chinese Yuan", "INR - Indian Rupee", "AED - UAE Dirham", "SAR - Saudi Riyal", "QAR - Qatari Riyal", "KWD - Kuwaiti Dinar", "BHD - Bahraini Dinar", "OMR - Omani Rial", "TRY - Turkish Lira", "SEK - Swedish Krona", "NOK - Norwegian Krone", "DKK - Danish Krone", "PLN - Polish Zloty", "BRL - Brazilian Real", "MXN - Mexican Peso", "ZAR - South African Rand", "NGN - Nigerian Naira", "EGP - Egyptian Pound", "TND - Tunisian Dinar", "DZD - Algerian Dinar", "LYD - Libyan Dinar"];
+                            current-value <=> root.currency;
                             height: 42px;
                         }
                     }
@@ -126,7 +155,7 @@ export component SettingsDialog inherits Rectangle {
                         height: 44px;
                         enabled: root.user-name != "";
                         clicked => {
-                            root.save-settings(root.user-name, root.currency);
+                            root.save-settings(root.user-name, root.currency, root.profile-image-path);
                             root.close-settings();
                         }
                     }

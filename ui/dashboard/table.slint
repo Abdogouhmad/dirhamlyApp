@@ -1,5 +1,5 @@
 import { Theme } from "../theme.slint";
-import { Button, ListView, LineEdit } from "std-widgets.slint";
+import { Button, ListView, LineEdit, DatePickerPopup } from "std-widgets.slint";
 
 export struct TransactionRowData {
     id: int,
@@ -22,6 +22,22 @@ export component TransactionTable inherits Rectangle {
     border-radius: Theme.radius-lg;
     border-width: 1px;
     border-color: Theme.border;
+
+    // DatePickerPopup for month filter
+    filter-date-picker := DatePickerPopup {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        close-policy: PopupClosePolicy.no-auto-close;
+
+        accepted(date) => {
+            root.filter-month = date.year + "-" + (date.month < 10 ? "0" : "") + date.month;
+            root.filter-changed(root.filter-month);
+            filter-date-picker.close();
+        }
+        canceled => {
+            filter-date-picker.close();
+        }
+    }
 
     VerticalLayout {
         padding: Theme.spacing-lg;
@@ -46,19 +62,64 @@ export component TransactionTable inherits Rectangle {
                 alignment: center;
 
                 Text {
-                    text: "Filter Month:";
+                    text: "Filter:";
                     color: Theme.text-secondary;
                     font-size: 13px;
                     vertical-alignment: center;
                 }
 
-                LineEdit {
-                    text <=> filter-month;
-                    placeholder-text: "YYYY-MM (e.g. 2026-07)";
-                    width: 160px;
+                Rectangle {
                     height: 34px;
-                    edited => {
-                        root.filter-changed(root.filter-month);
+                    border-radius: Theme.radius-sm;
+                    background: Theme.surface-input;
+                    border-width: 1px;
+                    border-color: Theme.border;
+                    min-width: 140px;
+
+                    HorizontalLayout {
+                        padding-left: Theme.spacing-md;
+                        padding-right: Theme.spacing-md;
+                        alignment: space-between;
+
+                        Text {
+                            text: root.filter-month != "" ? root.filter-month : "All months";
+                            color: root.filter-month != "" ? Theme.text-primary : Theme.text-muted;
+                            font-size: 13px;
+                            vertical-alignment: center;
+                        }
+
+                        Text {
+                            text: "📅";
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    TouchArea {
+                        clicked => { filter-date-picker.show(); }
+                    }
+                }
+
+                if root.filter-month != "" : Rectangle {
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 6px;
+                    background: Theme.expense-bg;
+
+                    Text {
+                        text: "✕";
+                        color: Theme.expense;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    TouchArea {
+                        clicked => {
+                            root.filter-month = "";
+                            root.filter-changed("");
+                        }
                     }
                 }
             }
@@ -176,7 +237,7 @@ export component TransactionTable inherits Rectangle {
                             vertical-alignment: center;
                         }
 
-                        // Delete Button — using Rectangle+Text+TouchArea instead of Button for perfect centering
+                        // Delete Button
                         HorizontalLayout {
                             width: 60px;
                             alignment: center;

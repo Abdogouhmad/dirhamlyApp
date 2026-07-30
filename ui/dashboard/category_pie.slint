@@ -29,7 +29,7 @@ export component CategoryPie inherits Rectangle {
 
         if categories.length == 0 : VerticalLayout {
             alignment: center;
-            height: 160px;
+            height: 200px;
             Text {
                 text: "No expenses recorded yet.";
                 color: Theme.text-muted;
@@ -39,19 +39,31 @@ export component CategoryPie inherits Rectangle {
         }
 
         if categories.length > 0 : VerticalLayout {
-            spacing: Theme.spacing-sm;
+            spacing: Theme.spacing-md;
 
             for cat in root.categories : VerticalLayout {
-                spacing: 2px;
+                spacing: 6px;
 
                 HorizontalLayout {
                     alignment: space-between;
 
-                    Text {
-                        text: cat.category;
-                        color: Theme.text-primary;
-                        font-size: 13px;
-                        font-weight: Theme.font-weight-medium;
+                    HorizontalLayout {
+                        spacing: Theme.spacing-sm;
+                        alignment: center;
+
+                        Rectangle {
+                            width: 8px;
+                            height: 8px;
+                            border-radius: 2px;
+                            background: Theme.accent;
+                        }
+
+                        Text {
+                            text: cat.category;
+                            color: Theme.text-primary;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-medium;
+                        }
                     }
 
                     Text {
@@ -61,19 +73,17 @@ export component CategoryPie inherits Rectangle {
                     }
                 }
 
-                // Progress Bar Container
                 Rectangle {
-                    height: 6px;
+                    height: 8px;
                     background: Theme.surface-alt;
-                    border-radius: 3px;
+                    border-radius: 4px;
 
                     HorizontalLayout {
-                        alignment: start;
                         Rectangle {
                             width: max(2px, cat.percentage * parent.width);
-                            height: 6px;
+                            height: 8px;
                             background: Theme.accent;
-                            border-radius: 3px;
+                            border-radius: 4px;
                         }
                     }
                 }

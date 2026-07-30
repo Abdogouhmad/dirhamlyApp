@@ -17,7 +17,6 @@ export component StatCard inherits Rectangle {
         padding: Theme.spacing-lg;
         spacing: Theme.spacing-md;
 
-        // Top Row: Title + Icon Badge
         HorizontalLayout {
             alignment: space-between;
 
@@ -46,7 +45,6 @@ export component StatCard inherits Rectangle {
             }
         }
 
-        // Amount Display
         HorizontalLayout {
             spacing: Theme.spacing-xs;
             alignment: start;
@@ -74,7 +72,6 @@ export component SummaryCards inherits HorizontalLayout {
     in property <string> total-income: "0.00";
     in property <string> total-expense: "0.00";
     in property <string> net-savings: "0.00";
-    in property <string> current-balance: "0.00";
     in property <string> currency: "MAD";
 
     spacing: Theme.spacing-md;
@@ -86,6 +83,7 @@ export component SummaryCards inherits HorizontalLayout {
         accent-color: Theme.income;
         accent-bg: Theme.income-bg;
         icon-text: "↓";
+        horizontal-stretch: 1;
     }
 
     StatCard {
@@ -95,6 +93,7 @@ export component SummaryCards inherits HorizontalLayout {
         accent-color: Theme.expense;
         accent-bg: Theme.expense-bg;
         icon-text: "↑";
+        horizontal-stretch: 1;
     }
 
     StatCard {
@@ -104,14 +103,6 @@ export component SummaryCards inherits HorizontalLayout {
         accent-color: Theme.savings;
         accent-bg: Theme.savings-bg;
         icon-text: "★";
-    }
-
-    StatCard {
-        title: "Current Balance";
-        amount-str: root.current-balance;
-        currency: root.currency;
-        accent-color: Theme.balance;
-        accent-bg: Theme.balance-bg;
-        icon-text: "❖";
+        horizontal-stretch: 1;
     }
 }
