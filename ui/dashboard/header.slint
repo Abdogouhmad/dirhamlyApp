@@ -4,7 +4,9 @@ import { Button } from "std-widgets.slint";
 export component DashHeader inherits Rectangle {
     in property <string> user-name: "User";
     in property <string> currency: "MAD";
+    in property <string> avatar-initials: "U";
     callback open-add-tx();
+    callback open-settings();
 
     height: 72px;
     background: transparent;
@@ -33,33 +35,10 @@ export component DashHeader inherits Rectangle {
             }
         }
 
-        // Right Side: Quick Action & Profile Pill
+        // Right Side: Add Tx Button + Avatar
         HorizontalLayout {
             alignment: center;
             spacing: Theme.spacing-md;
-
-            // Currency Badge
-            Rectangle {
-                height: 36px;
-                background: Theme.surface-alt;
-                border-radius: Theme.radius-md;
-                border-width: 1px;
-                border-color: Theme.border;
-
-                HorizontalLayout {
-                    padding-left: Theme.spacing-md;
-                    padding-right: Theme.spacing-md;
-                    alignment: center;
-
-                    Text {
-                        text: "Currency: " + root.currency;
-                        color: Theme.text-secondary;
-                        font-size: 13px;
-                        font-weight: Theme.font-weight-medium;
-                        vertical-alignment: center;
-                    }
-                }
-            }
 
             // Add Transaction Button
             Button {
@@ -67,6 +46,29 @@ export component DashHeader inherits Rectangle {
                 primary: true;
                 height: 38px;
                 clicked => { root.open-add-tx(); }
+            }
+
+            // Avatar — clickable to open settings
+            Rectangle {
+                width: 40px;
+                height: 40px;
+                border-radius: 20px;
+                background: Theme.accent;
+                border-width: 2px;
+                border-color: Theme.accent-hover;
+
+                Text {
+                    text: root.avatar-initials;
+                    color: #ffffff;
+                    font-size: 18px;
+                    font-weight: Theme.font-weight-bold;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                TouchArea {
+                    clicked => { root.open-settings(); }
+                }
             }
         }
     }

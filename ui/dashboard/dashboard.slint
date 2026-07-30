@@ -4,7 +4,7 @@ import { SummaryCards } from "summary.slint";
 import { MonthlyChart, MonthlyBalanceData } from "monthly_chart.slint";
 import { CategoryPie, CategoryItemData } from "category_pie.slint";
 import { TransactionTable, TransactionRowData } from "table.slint";
-import { Button, LineEdit, ComboBox, ScrollView } from "std-widgets.slint";
+import { Button, LineEdit, ComboBox, ScrollView, DatePickerPopup } from "std-widgets.slint";
 
 export component Dashboard inherits Rectangle {
     in property <string> user-name: "User";
@@ -13,6 +13,7 @@ export component Dashboard inherits Rectangle {
     in property <string> total-expense: "0.00";
     in property <string> net-savings: "0.00";
     in property <string> current-balance: "0.00";
+    in property <string> avatar-initials: "U";
 
     in property <[MonthlyBalanceData]> monthly-data: [];
     in property <float> monthly-max: 1000.0;
@@ -21,20 +22,30 @@ export component Dashboard inherits Rectangle {
 
     // Form modal state
     in-out property <bool> show-add-modal: false;
-    in-out property <string> new-tx-type: "expense"; // "income" or "expense"
+    in-out property <string> new-tx-type: "expense";
     in-out property <string> new-amount: "";
     in-out property <string> new-category: "food";
     in-out property <string> new-description: "";
-    in-out property <string> new-date: ""; // YYYY-MM-DD
+    in-out property <string> new-date: "";
+
+    // Date picker state
+    in-out property <int> dp-year: 2026;
+    in-out property <int> dp-month: 7;
+    in-out property <int> dp-day: 30;
 
     // Delete confirmation state
     in-out property <bool> show-delete-modal: false;
     in-out property <int> delete-target-id: 0;
 
+    // Category model
+    in-out property <[string]> expense-categories: ["food", "health", "entertainment", "utilities", "shopping", "e_shopping", "transport", "rent", "withdrawal", "other"];
+    in-out property <[string]> income-categories: ["salary", "freelance", "investment", "bank_interest", "gift", "other"];
+
     // Callbacks
-    callback submit-new-tx(string, string, string, string, string); // (tx_type, amount, category, desc, date)
+    callback submit-new-tx(string, string, string, string, string);
     callback confirm-delete-tx(int);
     callback filter-month-changed(string);
+    callback open-settings();
 
     background: Theme.background;
 
@@ -42,8 +53,13 @@ export component Dashboard inherits Rectangle {
         DashHeader {
             user-name: root.user-name;
             currency: root.currency;
+            avatar-initials: root.avatar-initials;
+
             open-add-tx => {
                 root.show-add-modal = true;
+            }
+            open-settings => {
+                root.open-settings();
             }
         }
 
@@ -52,7 +68,6 @@ export component Dashboard inherits Rectangle {
                 padding: Theme.spacing-lg;
                 spacing: Theme.spacing-lg;
 
-                // 1. Summary Cards
                 SummaryCards {
                     total-income: root.total-income;
                     total-expense: root.total-expense;
@@ -61,7 +76,6 @@ export component Dashboard inherits Rectangle {
                     currency: root.currency;
                 }
 
-                // 2. Charts Row
                 HorizontalLayout {
                     spacing: Theme.spacing-lg;
 
@@ -79,7 +93,6 @@ export component Dashboard inherits Rectangle {
                     }
                 }
 
-                // 3. Transactions Table
                 TransactionTable {
                     transactions: root.transactions;
                     currency: root.currency;
@@ -95,13 +108,26 @@ export component Dashboard inherits Rectangle {
         }
     }
 
-    // Modal Overlay 1: Add Transaction
+    // DatePickerPopup — placed at component root level (cannot be inside conditional)
+    date-picker := DatePickerPopup {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        close-policy: PopupClosePolicy.no-auto-close;
+
+        accepted(date) => {
+            root.new-date = date.year + "-" + (date.month < 10 ? "0" : "") + date.month + "-" + (date.day < 10 ? "0" : "") + date.day;
+            date-picker.close();
+        }
+        canceled => {
+            date-picker.close();
+        }
+    }
+
+    // ── Add Transaction Modal ──
     if root.show-add-modal : Rectangle {
         background: #000000a0;
 
-        TouchArea {
-            // Intercept clicks on backdrop
-        }
+        TouchArea {}
 
         VerticalLayout {
             alignment: center;
@@ -129,17 +155,30 @@ export component Dashboard inherits Rectangle {
                                 color: Theme.text-primary;
                                 font-size: 18px;
                                 font-weight: Theme.font-weight-bold;
+                                vertical-alignment: center;
                             }
 
-                            Button {
-                                text: "✕";
-                                height: 30px;
-                                width: 30px;
-                                clicked => { root.show-add-modal = false; }
+                            Rectangle {
+                                width: 32px;
+                                height: 32px;
+                                border-radius: Theme.radius-sm;
+                                background: Theme.surface-alt;
+
+                                Text {
+                                    text: "✕";
+                                    color: Theme.text-secondary;
+                                    font-size: 18px;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                TouchArea {
+                                    clicked => { root.show-add-modal = false; }
+                                }
                             }
                         }
 
-                        // Type Toggle (Segmented control)
+                        // Type Toggle
                         Rectangle {
                             height: 40px;
                             background: Theme.surface-alt;
@@ -195,10 +234,11 @@ export component Dashboard inherits Rectangle {
                             }
                         }
 
-                        // Inputs
+                        // Form inputs
                         VerticalLayout {
                             spacing: Theme.spacing-md;
 
+                            // Amount
                             VerticalLayout {
                                 spacing: Theme.spacing-xs;
                                 Text { text: "Amount (" + root.currency + ")"; color: Theme.text-secondary; font-size: 12px; }
@@ -209,17 +249,25 @@ export component Dashboard inherits Rectangle {
                                 }
                             }
 
+                            // Category — ComboBox filtered by tx type
                             VerticalLayout {
                                 spacing: Theme.spacing-xs;
                                 Text { text: "Category"; color: Theme.text-secondary; font-size: 12px; }
 
-                                LineEdit {
-                                    text <=> root.new-category;
-                                    placeholder-text: root.new-tx-type == "expense" ? "food, rent, health, shopping..." : "salary, freelance, investment...";
+                                if root.new-tx-type == "expense" : ComboBox {
+                                    model: root.expense-categories;
+                                    current-value <=> root.new-category;
+                                    height: 40px;
+                                }
+
+                                if root.new-tx-type == "income" : ComboBox {
+                                    model: root.income-categories;
+                                    current-value <=> root.new-category;
                                     height: 40px;
                                 }
                             }
 
+                            // Description
                             VerticalLayout {
                                 spacing: Theme.spacing-xs;
                                 Text { text: "Description"; color: Theme.text-secondary; font-size: 12px; }
@@ -230,18 +278,51 @@ export component Dashboard inherits Rectangle {
                                 }
                             }
 
+                            // Date — Open DatePicker
                             VerticalLayout {
                                 spacing: Theme.spacing-xs;
-                                Text { text: "Date (YYYY-MM-DD)"; color: Theme.text-secondary; font-size: 12px; }
-                                LineEdit {
-                                    text <=> root.new-date;
-                                    placeholder-text: "2026-07-30";
-                                    height: 40px;
+                                Text { text: "Date"; color: Theme.text-secondary; font-size: 12px; }
+
+                                HorizontalLayout {
+                                    spacing: Theme.spacing-sm;
+
+                                    Rectangle {
+                                        height: 40px;
+                                        border-radius: Theme.radius-sm;
+                                        background: Theme.surface-input;
+                                        border-width: 1px;
+                                        border-color: Theme.border;
+                                        horizontal-stretch: 1;
+
+                                        HorizontalLayout {
+                                            padding-left: Theme.spacing-md;
+                                            padding-right: Theme.spacing-md;
+                                            alignment: space-between;
+
+                                            Text {
+                                                text: root.new-date != "" ? root.new-date : "Select a date...";
+                                                color: root.new-date != "" ? Theme.text-primary : Theme.text-muted;
+                                                font-size: 13px;
+                                                vertical-alignment: center;
+                                            }
+
+                                            Text {
+                                                text: "📅";
+                                                color: Theme.text-secondary;
+                                                font-size: 14px;
+                                                vertical-alignment: center;
+                                            }
+                                        }
+
+                                        TouchArea {
+                                            clicked => { date-picker.show(); }
+                                        }
+                                    }
                                 }
                             }
                         }
 
-                        // Actions
+                        // Action buttons
                         HorizontalLayout {
                             spacing: Theme.spacing-md;
 
@@ -266,6 +347,12 @@ export component Dashboard inherits Rectangle {
                                         root.new-description,
                                         root.new-date
                                     );
+                                    // Clear form for next entry
+                                    root.new-amount = "";
+                                    root.new-category = "food";
+                                    root.new-description = "";
+                                    root.new-date = "";
+                                    root.new-tx-type = "expense";
                                     root.show-add-modal = false;
                                 }
                             }
@@ -274,9 +361,10 @@ export component Dashboard inherits Rectangle {
                 }
             }
         }
+
     }
 
-    // Modal Overlay 2: Delete Confirmation
+    // ── Delete Confirmation Modal ──
     if root.show-delete-modal : Rectangle {
         background: #000000a0;
 

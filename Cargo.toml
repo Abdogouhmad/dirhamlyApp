@@ -1,6 +1,6 @@
 [package]
 name = "dirhamly"
-version = "0.5.0"
+version = "0.5.1"
 description = "A modern, native, offline-first app for tracking expenses and income"
 authors = ["Abdogouhmad <gouhmada@gmail.com>"]
 edition = "2021"
@@ -16,8 +16,9 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 num-traits = "0.2"
 rusqlite = { version = "0.38", features = ["bundled"] }
-rust_decimal = { version = "1.38", features = ["serde-str"] }
-rust_decimal_macros = "1.38"
+rust_decimal = { version = "1.39", features = ["serde-str"] }
+rust_decimal_macros = "1.39"
+rusty-money = "0.5"
 strum = { version = "0.27", features = ["derive"] }
 strum_macros = "0.27"
 dirs = "6.0"

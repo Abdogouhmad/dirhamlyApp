@@ -83,3 +83,7 @@ pub fn convert_all_tx(db: &DiBase, rate: f64) -> Result<()> {
 pub fn get_monthly_balance(db: &DiBase, year: i32) -> Result<Vec<MonthlyBalance>> {
     db.get_monthly_balance(year)
 }
+
+pub fn reset_all_data(db: &DiBase) -> Result<()> {
+    db.delete_all_data()
+}

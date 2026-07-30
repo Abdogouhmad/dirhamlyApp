@@ -7,10 +7,30 @@ use crate::model::TxType;
 use chrono::Datelike;
 use rust_decimal::prelude::ToPrimitive;
 use rust_decimal::Decimal;
+use rusty_money::{iso, Money};
 use slint::{ComponentHandle, ModelRc, VecModel};
 use std::collections::HashMap;
 
 slint::include_modules!();
+
+fn format_money(amount: &Decimal, currency_code: &str) -> String {
+    let currency = match currency_code {
+        "USD" => iso::USD,
+        "EUR" => iso::EUR,
+        "GBP" => iso::GBP,
+        "MAD" => iso::MAD,
+        _ => iso::MAD,
+    };
+    Money::from_decimal(*amount, currency).to_string()
+}
+
+fn get_avatar_initials(name: &str) -> String {
+    name.trim()
+        .chars()
+        .next()
+        .map(|c| c.to_uppercase().to_string())
+        .unwrap_or_else(|| "U".to_string())
+}
 
 fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>) {
     // 1. Check Profile
@@ -24,6 +44,7 @@ fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>
 
     if let Some(ref p) = profile {
         window.set_user_name(p.name.as_str().into());
+        window.set_avatar_initials(get_avatar_initials(&p.name).into());
         window.set_currency(p.currency.as_str().into());
         window.set_active_page(1); // Dashboard
     } else {
@@ -71,10 +92,15 @@ fn refresh_app_state(window: &AppWindow, db: &DiBase, filter_month: Option<&str>
     let balance_f64 = commands::get_balance(db).unwrap_or(0.0);
     let net_savings_dec = total_income_dec - total_expense_dec;
 
-    window.set_total_income(total_income_dec.to_string().into());
-    window.set_total_expense(total_expense_dec.to_string().into());
-    window.set_net_savings(net_savings_dec.to_string().into());
-    window.set_current_balance(format!("{:.2}", balance_f64).into());
+    let currency_code = profile
+        .as_ref()
+        .map(|p| p.currency.as_str())
+        .unwrap_or("MAD");
+    window.set_total_income(format_money(&total_income_dec, currency_code).into());
+    window.set_total_expense(format_money(&total_expense_dec, currency_code).into());
+    window.set_net_savings(format_money(&net_savings_dec, currency_code).into());
+    let balance_dec = Decimal::try_from(balance_f64).unwrap_or(Decimal::ZERO);
+    window.set_current_balance(format_money(&balance_dec, currency_code).into());
 
     // 4. Monthly Chart Data for current year
     let current_year = chrono::Local::now().year();
@@ -154,6 +180,8 @@ fn main() -> anyhow::Result<()> {
     refresh_app_state(&window, &db, None);
 
     // 3. Register Callbacks
+
+    // Save profile (from onboarding)
     let db_clone1 = db.clone();
     let window_weak1 = window.as_weak();
     window.on_save_profile(move |name, _img, currency| {
@@ -173,6 +201,41 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
+    // Update settings (from settings dialog)
+    let db_clone_settings = db.clone();
+    let window_weak_settings = window.as_weak();
+    window.on_update_settings(move |name, currency| {
+        let name_str = name.to_string();
+        let curr_str = if currency.is_empty() {
+            "MAD".to_string()
+        } else {
+            currency.to_string()
+        };
+
+        if let Err(e) = commands::set_profile(&db_clone_settings, name_str, None, curr_str) {
+            eprintln!("Failed to update settings: {}", e);
+        }
+
+        if let Some(win) = window_weak_settings.upgrade() {
+            refresh_app_state(&win, &db_clone_settings, None);
+        }
+    });
+
+    // Reset profile (delete all data)
+    let db_clone_reset = db.clone();
+    let window_weak_reset = window.as_weak();
+    window.on_reset_profile(move || {
+        if let Err(e) = commands::reset_all_data(&db_clone_reset) {
+            eprintln!("Failed to reset data: {}", e);
+        }
+
+        if let Some(win) = window_weak_reset.upgrade() {
+            win.set_show_settings(false);
+            refresh_app_state(&win, &db_clone_reset, None);
+        }
+    });
+
+    // Add transaction
     let db_clone2 = db.clone();
     let window_weak2 = window.as_weak();
     window.on_add_transaction(move |tx_type, amount, category, desc, date| {
@@ -198,6 +261,7 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
+    // Delete transaction
     let db_clone3 = db.clone();
     let window_weak3 = window.as_weak();
     window.on_delete_transaction(move |id| {
@@ -210,6 +274,7 @@ fn main() -> anyhow::Result<()> {
         }
     });
 
+    // Filter transactions by month
     let db_clone4 = db.clone();
     let window_weak4 = window.as_weak();
     window.on_filter_transactions(move |month_filter| {

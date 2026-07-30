@@ -1,0 +1,199 @@
+import { Theme } from "theme.slint";
+import { Button, LineEdit } from "std-widgets.slint";
+
+export component SettingsDialog inherits Rectangle {
+    in-out property <string> user-name: "";
+    in-out property <string> currency: "MAD";
+    in property <string> avatar-initials: "U";
+
+    callback save-settings(string, string);
+    callback reset-profile();
+    callback close-settings();
+
+    in-out property <bool> confirm-reset: false;
+
+    background: #000000a0;
+
+    TouchArea {}
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: 400px;
+                background: Theme.surface;
+                border-radius: Theme.radius-xl;
+                border-width: 1px;
+                border-color: Theme.border;
+
+                VerticalLayout {
+                    padding: Theme.spacing-xl;
+                    spacing: Theme.spacing-lg;
+
+                    HorizontalLayout {
+                        alignment: space-between;
+
+                        Text {
+                            text: "Profile Settings";
+                            color: Theme.text-primary;
+                            font-size: 18px;
+                            font-weight: Theme.font-weight-bold;
+                            vertical-alignment: center;
+                        }
+
+                        Rectangle {
+                            width: 32px;
+                            height: 32px;
+                            border-radius: Theme.radius-sm;
+                            background: Theme.surface-alt;
+
+                            Text {
+                                text: "✕";
+                                color: Theme.text-secondary;
+                                font-size: 18px;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            TouchArea {
+                                clicked => { root.close-settings(); }
+                            }
+                        }
+                    }
+
+                    HorizontalLayout {
+                        alignment: center;
+
+                        Rectangle {
+                            width: 80px;
+                            height: 80px;
+                            border-radius: 40px;
+                            background: Theme.accent;
+                            border-width: 2px;
+                            border-color: Theme.accent;
+
+                            Text {
+                                text: root.avatar-initials;
+                                color: #ffffff;
+                                font-size: 36px;
+                                font-weight: Theme.font-weight-bold;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    VerticalLayout {
+                        spacing: Theme.spacing-xs;
+
+                        Text {
+                            text: "Name";
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-medium;
+                        }
+
+                        LineEdit {
+                            text <=> root.user-name;
+                            placeholder-text: "Your name";
+                            height: 42px;
+                        }
+                    }
+
+                    VerticalLayout {
+                        spacing: Theme.spacing-xs;
+
+                        Text {
+                            text: "Currency";
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-medium;
+                        }
+
+                        LineEdit {
+                            text <=> root.currency;
+                            placeholder-text: "MAD, USD, EUR...";
+                            height: 42px;
+                        }
+                    }
+
+                    Button {
+                        text: "Save Changes";
+                        primary: true;
+                        height: 44px;
+                        enabled: root.user-name != "";
+                        clicked => {
+                            root.save-settings(root.user-name, root.currency);
+                            root.close-settings();
+                        }
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: Theme.border;
+                    }
+
+                    VerticalLayout {
+                        spacing: Theme.spacing-sm;
+
+                        Text {
+                            text: "Danger Zone";
+                            color: Theme.expense;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-bold;
+                        }
+
+                        if !root.confirm-reset : Rectangle {
+                            height: 42px;
+                            background: Theme.expense-bg;
+                            border-radius: Theme.radius-md;
+                            border-width: 1px;
+                            border-color: Theme.expense;
+
+                            Text {
+                                text: "Reset All Data";
+                                color: Theme.expense;
+                                font-size: 13px;
+                                font-weight: Theme.font-weight-semibold;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            TouchArea {
+                                clicked => { root.confirm-reset = true; }
+                            }
+                        }
+
+                        if root.confirm-reset : HorizontalLayout {
+                            spacing: Theme.spacing-md;
+
+                            Text {
+                                text: "Delete all transactions and profile data? This cannot be undone.";
+                                color: Theme.text-secondary;
+                                font-size: 12px;
+                                wrap: word-wrap;
+                                horizontal-stretch: 1;
+                                vertical-alignment: center;
+                            }
+
+                            Button {
+                                text: "Reset";
+                                height: 38px;
+                                clicked => { root.reset-profile(); }
+                            }
+
+                            Button {
+                                text: "Cancel";
+                                height: 38px;
+                                clicked => { root.confirm-reset = false; }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

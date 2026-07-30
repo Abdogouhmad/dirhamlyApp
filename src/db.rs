@@ -153,6 +153,13 @@ impl DiBase {
         Ok(())
     }
 
+    pub fn delete_all_data(&self) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("DELETE FROM transactions", [])?;
+        conn.execute("DELETE FROM profile", [])?;
+        Ok(())
+    }
+
     pub fn get_monthly_balance(&self, year: i32) -> Result<Vec<MonthlyBalance>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(

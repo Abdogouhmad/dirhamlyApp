@@ -14,8 +14,8 @@ export struct TransactionRowData {
 export component TransactionTable inherits Rectangle {
     in property <[TransactionRowData]> transactions: [];
     in property <string> currency: "MAD";
-    in-out property <string> filter-month: ""; // YYYY-MM
-    callback request-delete(int); // id
+    in-out property <string> filter-month: "";
+    callback request-delete(int);
     callback filter-changed(string);
 
     background: Theme.surface;
@@ -176,16 +176,28 @@ export component TransactionTable inherits Rectangle {
                             vertical-alignment: center;
                         }
 
-                        // Delete Button
+                        // Delete Button — using Rectangle+Text+TouchArea instead of Button for perfect centering
                         HorizontalLayout {
                             width: 60px;
                             alignment: center;
 
-                            Button {
-                                text: "✕";
-                                height: 28px;
+                            Rectangle {
                                 width: 28px;
-                                clicked => { root.request-delete(item.id); }
+                                height: 28px;
+                                border-radius: 6px;
+                                background: Theme.expense-bg;
+
+                                Text {
+                                    text: "✕";
+                                    color: Theme.expense;
+                                    font-size: 14px;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+
+                                TouchArea {
+                                    clicked => { root.request-delete(item.id); }
+                                }
                             }
                         }
                     }
