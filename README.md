@@ -84,11 +84,19 @@ dirhamly/
 ├── build.rs                 # Slint compiler integration
 ├── Cargo.toml               # Rust dependencies
 ├── Justfile                 # Task automation
+├── PKGBUILD                 # Standalone Arch Linux package definition
+├── dirhamly.desktop         # Desktop entry for launchers
+├── assets/
+│   └── icons/               # In-app SVG icons (calendar, close, delete)
 ├── ui/
 │   ├── app.slint            # Root window, page routing
 │   ├── theme.slint          # Design tokens (colors, spacing, radii)
 │   ├── onboarding.slint     # First-run setup
 │   ├── settings.slint       # Profile settings dialog
+│   ├── components/
+│   │   ├── button.slint     # Shared DirhamlyButton component
+│   │   ├── charts/          # Reusable chart primitives (axis, bars, patterns)
+│   │   └── table/           # Reusable table pieces (header, row, cards)
 │   └── dashboard/
 │       ├── dashboard.slint  # Main screen layout
 │       ├── header.slint     # Greeting, avatar, add button
@@ -100,11 +108,15 @@ dirhamly/
 │   ├── main.rs              # Application entry point & Slint callbacks
 │   ├── model.rs             # Domain types (TxType, Category, Profile)
 │   ├── db.rs                # SQLite operations
-│   └── commands.rs          # Business logic functions
+│   ├── commands.rs          # Business logic functions
+│   ├── handlers.rs          # Slint callback handlers
+│   ├── state.rs             # Shared application state
+│   └── money.rs             # Currency formatting (rusty-money)
 └── packaging/
-    ├── aur/                 # Arch Linux PKGBUILD
+    ├── aur/                 # Arch Linux PKGBUILD for the AUR
     ├── icons/               # Application icons (PNG, ICO, ICNS)
-    └── scripts/             # Install/uninstall helpers
+    ├── scripts/             # Install/uninstall helpers
+    └── windows/             # NSIS Windows installer script
 ```
 
 ---
