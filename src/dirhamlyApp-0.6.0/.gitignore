@@ -7,6 +7,9 @@
 # Logs
 *.log
 
+# Packaging build artifacts
+pkg/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
