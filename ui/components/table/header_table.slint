@@ -1,0 +1,35 @@
+import { Theme } from "../../theme.slint";
+
+/// A component that displays the column headers for a table.
+/// params:
+/// - `col-date`: The width of the date column.
+/// - `col-type`: The width of the type column.
+/// - `col-category`: The width of the category column.
+/// - `col-description-min`: The width of the description column.
+/// - `col-amount`: The width of the amount column.
+/// - `col-action`: The width of the action column.
+export component TableColumnHeader inherits Rectangle {
+    in property <length> col-date;
+    in property <length> col-type;
+    in property <length> col-category;
+    in property <length> col-description-min;
+    in property <length> col-amount;
+    in property <length> col-action;
+
+    height: 36px;
+    background: Theme.surface-alt;
+    border-radius: Theme.radius-sm;
+
+    HorizontalLayout {
+        padding-left: Theme.spacing-md;
+        padding-right: Theme.spacing-md;
+        spacing: Theme.spacing-md;
+
+        HorizontalLayout { width: root.col-date; alignment: start; Text { text: "Date"; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; } }
+        HorizontalLayout { width: root.col-type; alignment: start; Text { text: "Type"; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; } }
+        HorizontalLayout { width: root.col-category; alignment: start; Text { text: "Category"; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; } }
+        HorizontalLayout { horizontal-stretch: 1; min-width: root.col-description-min; Text { text: "Description"; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; } }
+        HorizontalLayout { width: root.col-amount; alignment: end; Text { text: "Amount"; color: Theme.text-muted; font-size: 12px; font-weight: Theme.font-weight-medium; vertical-alignment: center; } }
+        HorizontalLayout { width: root.col-action; }
+    }
+}

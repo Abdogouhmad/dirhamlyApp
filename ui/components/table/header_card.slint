@@ -1,0 +1,75 @@
+import { Theme } from "../../theme.slint";
+import { DirhamlyButton } from "../button.slint";
+
+export component TableHeaderCard inherits HorizontalLayout {
+    in-out property <string> filter-month: "";
+    callback filter-changed(string);
+    callback open-filter-picker();
+
+    alignment: space-between;
+
+    Text {
+        text: "Recent Transactions";
+        color: Theme.text-primary;
+        font-size: 16px;
+        font-weight: Theme.font-weight-bold;
+        vertical-alignment: center;
+    }
+
+    HorizontalLayout {
+        spacing: Theme.spacing-sm;
+        alignment: center;
+
+        filter-pill := Rectangle {
+            height: 32px;
+            min-width: 130px;
+            border-radius: Theme.radius-sm;
+            background: filter-touch.has-hover ? Theme.surface-alt : Theme.surface-input;
+            border-width: 1px;
+            border-color: Theme.border;
+            animate background { duration: 120ms; }
+
+            HorizontalLayout {
+                padding-left: Theme.spacing-md;
+                padding-right: Theme.spacing-sm;
+                spacing: 4px;
+                alignment: center;
+
+                Text {
+                    text: root.filter-month != "" ? root.filter-month : "All months";
+                    color: root.filter-month != "" ? Theme.text-primary : Theme.text-muted;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+                Rectangle {
+                    width: 14px;
+                    height: 32px;
+
+                    Image {
+                        source: @image-url("../../../assets/icons/calendar.svg");
+                        width: 14px;
+                        height: 14px;
+                        colorize: Theme.text-muted;
+                        y: 7px;
+                    }
+                }
+            }
+
+            filter-touch := TouchArea {
+                clicked => { root.open-filter-picker(); }
+            }
+        }
+
+        if root.filter-month != "": DirhamlyButton {
+            icon: @image-url("../../../assets/icons/close.svg");
+            icon-size: 13px;
+            bg: transparent;
+            fg: Theme.text-muted;
+            hover-bg: Theme.expense-bg;
+            hover-fg: Theme.expense;
+            h-padding: 8px;
+            v-padding: 8px;
+            clicked => { root.filter-month = ""; root.filter-changed(""); }
+        }
+    }
+}

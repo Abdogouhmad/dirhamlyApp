@@ -1,0 +1,25 @@
+pkgname=dirhamly
+pkgver=0.6.0
+pkgrel=1
+pkgdesc="A modern, native, offline-first app for tracking expenses and income"
+arch=('x86_64')
+url="https://github.com/Abdogouhmad/dirhamlyApp"
+license=('MIT')
+depends=('gcc-libs' 'fontconfig' 'freetype2' 'libxkbcommon')
+makedepends=('cargo' 'rust')
+source=("$pkgname-$pkgver.tar.gz::file:///tmp/opencode/pkgtest/src/dirhamlyApp-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$pkgname-$pkgver" || cd "dirhamlyApp-$pkgver"
+  cargo build --release --locked
+}
+
+package() {
+  cd "$pkgname-$pkgver" || cd "dirhamlyApp-$pkgver"
+  install -Dm755 "target/release/dirhamly" "$pkgdir/usr/bin/dirhamly"
+  install -Dm644 "packaging/aur/dirhamly.desktop" \
+    "$pkgdir/usr/share/applications/dirhamly.desktop"
+  install -Dm644 "packaging/icons/128x128.png" \
+    "$pkgdir/usr/share/pixmaps/dirhamly.png"
+}

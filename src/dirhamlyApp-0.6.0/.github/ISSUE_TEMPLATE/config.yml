@@ -1,0 +1,5 @@
+blank_issues_enabled: false          # disable "Open blank issue" if you want
+contact_links:
+  - name: 💬 General Discussion / Questions
+    url:  https://x.com/a3bdor7man
+    about: Ask questions or discuss ideas here
