@@ -1,0 +1,55 @@
+import { Theme } from "../theme.slint";
+import { GroupedBarChart, ChartBarGroup } from "../components/charts/bar_chart.slint";
+import { LegendItem } from "../components/charts/chart_axis.slint";
+
+export { ChartBarGroup } from "../components/charts/bar_chart.slint";
+
+export component MonthlyChart inherits Rectangle {
+    in property <[ChartBarGroup]> months: [];
+    in property <float> max-val: 100000.0;
+    in property <string> currency: "MAD";
+
+    background: Theme.surface;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+
+    VerticalLayout {
+        padding: Theme.spacing-lg;
+        spacing: Theme.spacing-md;
+
+        HorizontalLayout {
+            alignment: space-between;
+
+            Text {
+                text: "Monthly Performance";
+                color: Theme.text-primary;
+                font-size: 16px;
+                font-weight: Theme.font-weight-bold;
+                vertical-alignment: center;
+            }
+
+            HorizontalLayout {
+                spacing: Theme.spacing-md;
+                alignment: center;
+
+                LegendItem { color: Theme.income; label: "Income"; }
+                LegendItem { color: Theme.expense; label: "Expense"; }
+            }
+        }
+
+        Rectangle {
+            height: 200px;
+            background: Theme.surface-alt;
+            border-radius: Theme.radius-md;
+
+            GroupedBarChart {
+                bars: root.months;
+                max-value: root.max-val;
+                max-label: "Max " + round(root.max-val) + " " + root.currency;
+                primary-color: Theme.income;
+                secondary-color: Theme.expense;
+            }
+        }
+    }
+}

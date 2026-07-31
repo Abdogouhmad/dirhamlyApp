@@ -1,0 +1,54 @@
+// components/button.slint
+import { Theme } from "../theme.slint";
+
+export component DirhamlyButton inherits Rectangle {
+    in property <string> text;
+    in property <image> icon;
+    in property <length> icon-size: 15px;
+    in property <bool> enabled: true;
+    in property <brush> bg: Theme.primary;
+    in property <brush> fg: Theme.on-primary;
+    in property <brush> hover-bg: bg;
+    in property <brush> hover-fg: fg;
+    in property <length> h-padding: 14px;
+    in property <length> v-padding: 8px;
+
+    callback clicked();
+
+    border-radius: Theme.radius-sm;
+    background: !root.enabled ? bg.with-alpha(0.35)
+        : touch.pressed ? (touch.has-hover ? hover-bg.darker(15%) : bg.darker(15%))
+        : touch.has-hover ? hover-bg
+        : bg;
+    animate background { duration: 120ms; easing: ease-in-out; }
+
+    touch := TouchArea {
+        width: 100%;
+        height: 100%;
+        enabled: root.enabled;
+        clicked => { root.clicked(); }
+    }
+
+    HorizontalLayout {
+        padding-left: root.h-padding;
+        padding-right: root.h-padding;
+        padding-top: root.v-padding;
+        padding-bottom: root.v-padding;
+        spacing: 6px;
+        alignment: center;
+
+        if root.icon.width > 0: Image {
+            source: root.icon;
+            width: root.icon-size;
+            height: root.icon-size;
+            colorize: touch.has-hover ? root.hover-fg : root.fg;
+            animate colorize { duration: 120ms; }
+        }
+        if root.text != "": Text {
+            text: root.text;
+            color: touch.has-hover ? root.hover-fg : root.fg;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+    }
+}

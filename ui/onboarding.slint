@@ -1,0 +1,169 @@
+import { Theme } from "theme.slint";
+import { Button, LineEdit, ComboBox } from "std-widgets.slint";
+
+export component Onboarding inherits Rectangle {
+    in-out property <string> name-text: "";
+    in-out property <string> currency-text: "MAD";
+    in-out property <string> profile-image-path: "";
+    in property <image> profile-image-data;
+    callback submit-profile(string, string, string); // (name, image, currency)
+    callback pick-profile-image();
+
+    background: Theme.background;
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: 480px;
+                background: Theme.surface;
+                border-radius: Theme.radius-xl;
+                border-width: 1px;
+                border-color: Theme.border;
+
+                VerticalLayout {
+                    padding: Theme.spacing-xl;
+                    spacing: Theme.spacing-lg;
+
+                    // Logo and Title Area
+                    VerticalLayout {
+                        spacing: Theme.spacing-xs;
+                        alignment: center;
+
+                        HorizontalLayout {
+                            alignment: center;
+                            Rectangle {
+                                width: 56px;
+                                height: 56px;
+                                border-radius: 16px;
+                                background: Theme.accent;
+
+                                Text {
+                                    text: "D";
+                                    color: #ffffff;
+                                    font-size: 28px;
+                                    font-weight: Theme.font-weight-bold;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "Welcome to Dirhamly";
+                            color: Theme.text-primary;
+                            font-size: 24px;
+                            font-weight: Theme.font-weight-bold;
+                            horizontal-alignment: center;
+                        }
+
+                        Text {
+                            text: "Your personal financial tracking operating system.";
+                            color: Theme.text-secondary;
+                            font-size: 14px;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+                    }
+
+                    // Profile Picture Upload
+                    VerticalLayout {
+                        spacing: Theme.spacing-sm;
+                        alignment: center;
+
+                        Text {
+                            text: "Profile Picture (optional)";
+                            color: Theme.text-secondary;
+                            font-size: 12px;
+                            horizontal-alignment: center;
+                        }
+
+                        Rectangle {
+                            width: 88px;
+                            height: 88px;
+                            border-radius: 44px;
+                            background: root.profile-image-path != "" ? Theme.surface : Theme.surface-alt;
+                            border-width: 2px;
+                            border-color: root.profile-image-path != "" ? Theme.accent : Theme.border;
+
+                            if root.profile-image-path != "" : Rectangle {
+                                width: 84px;
+                                height: 84px;
+                                border-radius: 42px;
+                                clip: true;
+
+                                Image {
+                                    source: root.profile-image-data;
+                                    width: 84px;
+                                    height: 84px;
+                                }
+                            }
+
+                            if root.profile-image-path == "" : Text {
+                                text: "+";
+                                color: Theme.text-muted;
+                                font-size: 36px;
+                                font-weight: Theme.font-weight-bold;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            TouchArea {
+                                clicked => { root.pick-profile-image(); }
+                            }
+                        }
+                    }
+
+                    // Form Fields
+                    VerticalLayout {
+                        spacing: Theme.spacing-md;
+
+                        VerticalLayout {
+                            spacing: Theme.spacing-xs;
+                            Text {
+                                text: "Your Name";
+                                color: Theme.text-secondary;
+                                font-size: 13px;
+                                font-weight: Theme.font-weight-medium;
+                            }
+                            LineEdit {
+                                text <=> name-text;
+                                placeholder-text: "e.g. John Doe";
+                                height: 42px;
+                            }
+                        }
+
+                        VerticalLayout {
+                            spacing: Theme.spacing-xs;
+                            Text {
+                                text: "Default Currency";
+                                color: Theme.text-secondary;
+                                font-size: 13px;
+                                font-weight: Theme.font-weight-medium;
+                            }
+                            ComboBox {
+                                model: ["MAD - Moroccan Dirham", "USD - US Dollar", "EUR - Euro", "GBP - British Pound", "JPY - Japanese Yen", "CAD - Canadian Dollar", "AUD - Australian Dollar", "CHF - Swiss Franc", "CNY - Chinese Yuan", "INR - Indian Rupee", "AED - UAE Dirham", "SAR - Saudi Riyal", "QAR - Qatari Riyal", "KWD - Kuwaiti Dinar", "BHD - Bahraini Dinar", "OMR - Omani Rial", "TRY - Turkish Lira", "SEK - Swedish Krona", "NOK - Norwegian Krone", "DKK - Danish Krone", "PLN - Polish Zloty", "BRL - Brazilian Real", "MXN - Mexican Peso", "ZAR - South African Rand", "NGN - Nigerian Naira", "EGP - Egyptian Pound", "TND - Tunisian Dinar", "DZD - Algerian Dinar", "LYD - Libyan Dinar"];
+                                current-value <=> root.currency-text;
+                                height: 42px;
+                            }
+                        }
+                    }
+
+                    // Action Button
+                    Button {
+                        text: "Get Started";
+                        primary: true;
+                        height: 46px;
+                        enabled: name-text != "";
+                        clicked => {
+                            root.submit-profile(root.name-text, root.profile-image-path, root.currency-text);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

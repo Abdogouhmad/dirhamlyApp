@@ -1,0 +1,217 @@
+import { Theme } from "theme.slint";
+import { Button, LineEdit, ComboBox } from "std-widgets.slint";
+import { DirhamlyButton } from "components/button.slint";
+
+export component SettingsDialog inherits Rectangle {
+    in-out property <string> user-name: "";
+    in-out property <string> currency: "MAD";
+    in property <string> avatar-initials: "U";
+    in-out property <string> profile-image-path: "";
+    in property <image> profile-image-data;
+
+    callback save-settings(string, string, string); // (name, currency, image_path)
+    callback pick-profile-image();
+    callback reset-profile();
+    callback close-settings();
+
+    in-out property <bool> confirm-reset: false;
+
+    background: #000000a0;
+
+    TouchArea {}
+
+    VerticalLayout {
+        alignment: center;
+
+        HorizontalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: 420px;
+                background: Theme.surface;
+                border-radius: Theme.radius-xl;
+                border-width: 1px;
+                border-color: Theme.border;
+
+                VerticalLayout {
+                    padding: Theme.spacing-xl;
+                    spacing: Theme.spacing-lg;
+
+                    HorizontalLayout {
+                        alignment: space-between;
+
+                        Text {
+                            text: "Profile Settings";
+                            color: Theme.text-primary;
+                            font-size: 18px;
+                            font-weight: Theme.font-weight-bold;
+                            vertical-alignment: center;
+                        }
+
+                        DirhamlyButton {
+                            icon: @image-url("../assets/icons/close.svg");
+                            hover-bg: Theme.danger;
+                            h-padding: 8px;
+                            clicked => { root.close-settings(); }
+                        }
+                    }
+
+                    // PFP Avatar — clickable to change
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: Theme.spacing-sm;
+
+                        Rectangle {
+                            width: 88px;
+                            height: 88px;
+                            border-radius: 44px;
+                            background: root.profile-image-path != "" ? Theme.surface : Theme.accent;
+                            border-width: 2px;
+                            border-color: root.profile-image-path != "" ? Theme.accent-hover : Theme.accent;
+
+                            if root.profile-image-path != "" : Rectangle {
+                                width: 84px;
+                                height: 84px;
+                                border-radius: 42px;
+                                clip: true;
+
+                                Image {
+                                    source: root.profile-image-data;
+                                    width: 84px;
+                                    height: 84px;
+                                }
+                            }
+
+                            if root.profile-image-path == "" : Text {
+                                text: root.avatar-initials;
+                                color: #ffffff;
+                                font-size: 36px;
+                                font-weight: Theme.font-weight-bold;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            TouchArea {
+                                clicked => { root.pick-profile-image(); }
+                            }
+                        }
+
+                        Text {
+                            text: "Tap to change photo";
+                            color: Theme.text-muted;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+                    }
+
+                    VerticalLayout {
+                        spacing: Theme.spacing-xs;
+
+                        Text {
+                            text: "Name";
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-medium;
+                        }
+
+                        LineEdit {
+                            text <=> root.user-name;
+                            placeholder-text: "Your name";
+                            height: 42px;
+                        }
+                    }
+
+                    VerticalLayout {
+                        spacing: Theme.spacing-xs;
+
+                        Text {
+                            text: "Currency";
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-medium;
+                        }
+
+                        ComboBox {
+                            model: ["MAD - Moroccan Dirham", "USD - US Dollar", "EUR - Euro", "GBP - British Pound", "JPY - Japanese Yen", "CAD - Canadian Dollar", "AUD - Australian Dollar", "CHF - Swiss Franc", "CNY - Chinese Yuan", "INR - Indian Rupee", "AED - UAE Dirham", "SAR - Saudi Riyal", "QAR - Qatari Riyal", "KWD - Kuwaiti Dinar", "BHD - Bahraini Dinar", "OMR - Omani Rial", "TRY - Turkish Lira", "SEK - Swedish Krona", "NOK - Norwegian Krone", "DKK - Danish Krone", "PLN - Polish Zloty", "BRL - Brazilian Real", "MXN - Mexican Peso", "ZAR - South African Rand", "NGN - Nigerian Naira", "EGP - Egyptian Pound", "TND - Tunisian Dinar", "DZD - Algerian Dinar", "LYD - Libyan Dinar"];
+                            current-value <=> root.currency;
+                            height: 42px;
+                        }
+                    }
+
+                    Button {
+                        text: "Save Changes";
+                        primary: true;
+                        height: 44px;
+                        enabled: root.user-name != "";
+                        clicked => {
+                            root.save-settings(root.user-name, root.currency, root.profile-image-path);
+                            root.close-settings();
+                        }
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: Theme.border;
+                    }
+
+                    VerticalLayout {
+                        spacing: Theme.spacing-sm;
+
+                        Text {
+                            text: "Danger Zone";
+                            color: Theme.expense;
+                            font-size: 13px;
+                            font-weight: Theme.font-weight-bold;
+                        }
+
+                        if !root.confirm-reset : Rectangle {
+                            height: 42px;
+                            background: Theme.expense-bg;
+                            border-radius: Theme.radius-md;
+                            border-width: 1px;
+                            border-color: Theme.expense;
+
+                            Text {
+                                text: "Reset All Data";
+                                color: Theme.expense;
+                                font-size: 13px;
+                                font-weight: Theme.font-weight-semibold;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            TouchArea {
+                                clicked => { root.confirm-reset = true; }
+                            }
+                        }
+
+                        if root.confirm-reset : HorizontalLayout {
+                            spacing: Theme.spacing-md;
+
+                            Text {
+                                text: "Delete all transactions and profile data? This cannot be undone.";
+                                color: Theme.text-secondary;
+                                font-size: 12px;
+                                wrap: word-wrap;
+                                horizontal-stretch: 1;
+                                vertical-alignment: center;
+                            }
+
+                            Button {
+                                text: "Reset";
+                                height: 38px;
+                                clicked => { root.reset-profile(); }
+                            }
+
+                            Button {
+                                text: "Cancel";
+                                height: 38px;
+                                clicked => { root.confirm-reset = false; }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

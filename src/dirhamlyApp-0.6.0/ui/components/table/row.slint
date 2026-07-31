@@ -1,0 +1,157 @@
+import { Theme } from "../../theme.slint";
+import { DirhamlyButton } from "../button.slint";
+
+export struct TransactionRowData {
+    id: int,
+    tx_type: string,
+    amount_str: string,
+    category: string,
+    description: string,
+    date: string,
+    is_income: bool,
+}
+
+export component TransactionRow inherits Rectangle {
+    in property <TransactionRowData> item;
+    in property <string> currency: "MAD";
+    in property <bool> show-divider: false;
+    in property <length> col-date;
+    in property <length> col-type;
+    in property <length> col-category;
+    in property <length> col-description-min;
+    in property <length> col-amount;
+    in property <length> col-action;
+    callback delete(int);
+
+    height: 56px;
+    background: row-touch.has-hover ? Theme.surface-alt : transparent;
+    animate background { duration: 100ms; }
+
+    row-touch := TouchArea {
+        width: 100%;
+        height: 100%;
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing-md;
+        padding-right: Theme.spacing-md;
+        spacing: Theme.spacing-md;
+
+        // 1. Date Cell
+        HorizontalLayout {
+            width: root.col-date;
+            alignment: start; // Locks to the left edge of the column
+            Text {
+                text: root.item.date;
+                color: Theme.text-secondary;
+                font-size: 13px;
+                vertical-alignment: center;
+            }
+        }
+
+        // 2. Type Cell (Pill)
+        HorizontalLayout {
+            width: root.col-type;
+            alignment: start;
+            VerticalLayout {
+                alignment: center; // Centers the pill vertically
+                Rectangle {
+                    height: 24px;
+                    border-radius: 12px;
+                    background: root.item.is_income ? Theme.income-bg : Theme.expense-bg;
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        alignment: center;
+                        Text {
+                            text: root.item.tx_type;
+                            color: root.item.is_income ? Theme.income : Theme.expense;
+                            font-size: 11px;
+                            font-weight: Theme.font-weight-semibold;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Category Cell (Pill)
+        HorizontalLayout {
+            width: root.col-category;
+            alignment: start;
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    height: 24px;
+                    border-radius: Theme.radius-sm;
+                    background: Theme.surface-alt;
+                    HorizontalLayout {
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        alignment: center;
+                        Text {
+                            text: root.item.category;
+                            color: Theme.text-secondary;
+                            font-size: 12px;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Description Cell
+        // (No start alignment wrapper here so it stretches and truncates correctly)
+        HorizontalLayout {
+            horizontal-stretch: 1;
+            min-width: root.col-description-min;
+            Text {
+                text: root.item.description != "" ? root.item.description : "—";
+                overflow: elide;
+                color: Theme.text-primary;
+                font-size: 13px;
+                vertical-alignment: center;
+            }
+        }
+
+        // 5. Amount Cell
+        HorizontalLayout {
+            width: root.col-amount;
+            alignment: end; // Locks to the right edge of the column
+            Text {
+                text: (root.item.is_income ? "+" : "-") + root.item.amount_str + " " + root.currency;
+                color: root.item.is_income ? Theme.income : Theme.expense;
+                font-size: 13px;
+                font-weight: Theme.font-weight-bold;
+                vertical-alignment: center;
+            }
+        }
+
+        // 6. Action Cell
+        HorizontalLayout {
+            width: root.col-action;
+            alignment: end;
+            VerticalLayout {
+                alignment: center;
+                DirhamlyButton {
+                    icon: @image-url("../../../assets/icons/delete.svg");
+                    icon-size: 15px;
+                    bg: transparent;
+                    fg: Theme.text-muted;
+                    hover-bg: Theme.expense-bg;
+                    hover-fg: Theme.expense;
+                    h-padding: 8px;
+                    v-padding: 8px;
+                    clicked => { root.delete(root.item.id); }
+                }
+            }
+        }
+    }
+
+    if root.show-divider: Rectangle {
+        y: parent.height - 1px;
+        height: 1px;
+        width: 100%;
+        background: Theme.border;
+    }
+}

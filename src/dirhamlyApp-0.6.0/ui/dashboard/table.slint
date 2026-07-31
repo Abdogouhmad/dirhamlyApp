@@ -1,0 +1,96 @@
+import { Theme } from "../theme.slint";
+import { ListView, DatePickerPopup } from "std-widgets.slint";
+import { TransactionRowData, TransactionRow } from "../components/table/row.slint";
+import { TableHeaderCard } from "../components/table/header_card.slint";
+import { TableColumnHeader } from "../components/table/header_table.slint";
+
+export { TransactionRowData } from "../components/table/row.slint";
+
+export component TransactionTable inherits Rectangle {
+    in property <[TransactionRowData]> transactions: [];
+    in property <string> currency: "MAD";
+    in-out property <string> filter-month: "";
+    callback request-delete(int);
+    callback filter-changed(string);
+
+    // Adjusted column widths to balance the table perfectly
+    private property <length> col-date: 100px;
+    private property <length> col-type: 90px;
+    private property <length> col-category: 110px;
+    private property <length> col-description-min: 150px;
+    private property <length> col-amount: 130px;
+    private property <length> col-action: 40px;
+
+    background: Theme.surface;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+
+    filter-date-picker := DatePickerPopup {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        close-policy: PopupClosePolicy.no-auto-close;
+        accepted(date) => {
+            root.filter-month = date.year + "-" + (date.month < 10 ? "0" : "") + date.month;
+            root.filter-changed(root.filter-month);
+            filter-date-picker.close();
+        }
+        canceled => { filter-date-picker.close(); }
+    }
+
+    VerticalLayout {
+        padding: Theme.spacing-lg;
+        spacing: Theme.spacing-md;
+
+        // Table Header Area
+        TableHeaderCard {
+            filter-month <=> root.filter-month;
+            filter-changed(m) => { root.filter-changed(m); }
+            open-filter-picker => { filter-date-picker.show(); }
+        }
+
+        // Structurally Matched Column Headers
+        TableColumnHeader {
+            col-date: root.col-date;
+            col-type: root.col-type;
+            col-category: root.col-category;
+            col-description-min: root.col-description-min;
+            col-amount: root.col-amount;
+            col-action: root.col-action;
+        }
+
+        if transactions.length == 0: VerticalLayout {
+            alignment: center;
+            height: 160px;
+            Text {
+                text: "No transactions found.";
+                color: Theme.text-muted;
+                font-size: 14px;
+                horizontal-alignment: center;
+            }
+        }
+
+        if transactions.length > 0: Flickable {
+            height: min(root.transactions.length * 56px, 320px);
+            viewport-height: root.transactions.length * 56px;
+
+            VerticalLayout {
+                spacing: 0px;
+
+                for item[i] in root.transactions:
+                    TransactionRow {
+                        item: item;
+                        currency: root.currency;
+                        show-divider: i != root.transactions.length - 1;
+                        col-date: root.col-date;
+                        col-type: root.col-type;
+                        col-category: root.col-category;
+                        col-description-min: root.col-description-min;
+                        col-amount: root.col-amount;
+                        col-action: root.col-action;
+                        delete(id) => { root.request-delete(id); }
+                    }
+            }
+        }
+    }
+}

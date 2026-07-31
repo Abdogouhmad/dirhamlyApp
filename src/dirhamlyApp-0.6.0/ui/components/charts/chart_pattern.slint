@@ -1,0 +1,35 @@
+import { Theme } from "../../theme.slint";
+
+export component ChartPattern inherits Rectangle {
+    in property <int> count: 4;
+    in property <length> line-width: 1px;
+    in property <color> line-color: Theme.border;
+
+    VerticalLayout {
+        alignment: space-between;
+        for _i in root.count : Rectangle {
+            height: root.line-width;
+            background: root.line-color;
+        }
+    }
+}
+
+export component Bar inherits Rectangle {
+    in property <length> bar-height;
+    in property <color> bar-color;
+
+    Rectangle {
+        width: 100%;
+        border-radius: Theme.radius-sm;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        y: parent.height - self.height;
+        height: root.bar-height;
+        background: root.bar-color;
+    }
+}
+
+export component BarBackground inherits Rectangle {
+    border-radius: 4px;
+    background: Theme.surface-input;
+}

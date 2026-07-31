@@ -1,0 +1,108 @@
+import { Theme } from "../theme.slint";
+
+export component StatCard inherits Rectangle {
+    in property <string> title: "";
+    in property <string> amount-str: "0.00";
+    in property <string> currency: "MAD";
+    in property <color> accent-color: Theme.accent;
+    in property <color> accent-bg: Theme.surface-alt;
+    in property <string> icon-text: "•";
+
+    background: Theme.surface;
+    border-radius: Theme.radius-lg;
+    border-width: 1px;
+    border-color: Theme.border;
+
+    VerticalLayout {
+        padding: Theme.spacing-lg;
+        spacing: Theme.spacing-md;
+
+        HorizontalLayout {
+            alignment: space-between;
+
+            Text {
+                text: root.title;
+                color: Theme.text-secondary;
+                font-size: 13px;
+                font-weight: Theme.font-weight-medium;
+                vertical-alignment: center;
+            }
+
+            Rectangle {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                background: root.accent-bg;
+
+                Text {
+                    text: root.icon-text;
+                    color: root.accent-color;
+                    font-size: 16px;
+                    font-weight: Theme.font-weight-bold;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: Theme.spacing-xs;
+            alignment: start;
+
+            Text {
+                text: root.amount-str;
+                color: Theme.text-primary;
+                font-size: 24px;
+                font-weight: Theme.font-weight-bold;
+                vertical-alignment: bottom;
+            }
+
+            Text {
+                text: root.currency;
+                color: Theme.text-muted;
+                font-size: 13px;
+                font-weight: Theme.font-weight-medium;
+                vertical-alignment: bottom;
+            }
+        }
+    }
+}
+
+export component SummaryCards inherits HorizontalLayout {
+    in property <string> total-income: "0.00";
+    in property <string> total-expense: "0.00";
+    in property <string> net-savings: "0.00";
+    in property <string> currency: "MAD";
+
+    spacing: Theme.spacing-md;
+
+    StatCard {
+        title: "Total Income";
+        amount-str: root.total-income;
+        currency: root.currency;
+        accent-color: Theme.income;
+        accent-bg: Theme.income-bg;
+        icon-text: "↓";
+        horizontal-stretch: 1;
+    }
+
+    StatCard {
+        title: "Total Expenses";
+        amount-str: root.total-expense;
+        currency: root.currency;
+        accent-color: Theme.expense;
+        accent-bg: Theme.expense-bg;
+        icon-text: "↑";
+        horizontal-stretch: 1;
+    }
+
+    StatCard {
+        title: "Net Savings";
+        amount-str: root.net-savings;
+        currency: root.currency;
+        accent-color: Theme.savings;
+        accent-bg: Theme.savings-bg;
+        icon-text: "★";
+        horizontal-stretch: 1;
+    }
+}
